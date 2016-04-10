@@ -1,0 +1,45 @@
+﻿  client.cpp
+client.cpp(46): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+client.cpp(57): warning C4018: “<”: 有符号/无符号不匹配
+client.cpp(68): warning C4101: “e”: 未引用的局部变量
+  FeatureTracker.cpp
+FeatureTracker.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(40): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(41): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(45): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(46): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+FeatureTracker.cpp(59): warning C4018: “<”: 有符号/无符号不匹配
+FeatureTracker.cpp(111): warning C4018: “<”: 有符号/无符号不匹配
+  MonitorForm.cpp
+c:\software\opencv2.4.11\opencv\build\include\opencv2\flann\logger.h(66): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(205): note: 参见“fopen”的声明
+c:\visualstudioproject\detectionmonitor\detectionmonitor\client.cpp(46): warning C4244: “参数”: 从“__int64”转换到“int”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\client.cpp(57): warning C4018: “<”: 有符号/无符号不匹配
+c:\visualstudioproject\detectionmonitor\detectionmonitor\client.cpp(68): warning C4101: “e”: 未引用的局部变量
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(40): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(41): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(45): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\utilCLass.h(46): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+c:\visualstudioproject\detectionmonitor\detectionmonitor\FeatureTracker.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+c:\visualstudioproject\detectionmonitor\detectionmonitor\FeatureTracker.cpp(59): warning C4018: “<”: 有符号/无符号不匹配
+c:\visualstudioproject\detectionmonitor\detectionmonitor\FeatureTracker.cpp(111): warning C4018: “<”: 有符号/无符号不匹配
+c:\visualstudioproject\detectionmonitor\detectionmonitor\MonitorForm.h(60): warning C4398: “tracker”: per-process 全局对象可能无法与多个 appdomain 一起正常工作；请考虑使用 __declspec(appdomain)
+c:\visualstudioproject\detectionmonitor\detectionmonitor\MonitorForm.h(508): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\string.h(119): note: 参见“strcpy”的声明
+c:\visualstudioproject\detectionmonitor\detectionmonitor\MonitorForm.h(509): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\string.h(90): note: 参见“strcat”的声明
+c:\visualstudioproject\detectionmonitor\detectionmonitor\MonitorForm.h(510): warning C4996: 'strcat': This function or variable may be unsafe. Consider using strcat_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\string.h(90): note: 参见“strcat”的声明
+c:\visualstudioproject\detectionmonitor\detectionmonitor\MonitorForm.h(613): warning C4101: “g”: 未引用的局部变量
+  utils.cpp
+utils.cpp(7): warning C4244: “=”: 从“wchar_t”转换到“char”，可能丢失数据
+  正在生成代码...
+c:\software\opencv2.4.11\opencv\build\include\opencv2\core\types_c.h(315): warning C4793: “cvRound”: 编译为本机的函数:
+  	托管代码中不支持内联本机程序集
+c:\software\opencv2.4.11\opencv\build\include\opencv2\core\types_c.h(315): warning C4793: “cvRound”: 编译为本机的函数:
+  	托管代码中不支持内联本机程序集
+  .NETFramework,Version=v4.5.2.AssemblyAttributes.cpp
+  client.obj :托管的代码存在时 /DEBUG:FASTLINK 不受支持；正在重新启动与 /DEBUG:FULL 的链接
+MonitorForm.obj : warning LNK4248: 无法解析 typeref 标记(0100003A)(为“CvCapture”)；映像可能无法运行
+  DetectionMonitor.vcxproj -> C:\visualStudioProject\DetectionMonitor\Debug\DetectionMonitor.exe
+  DetectionMonitor.vcxproj -> C:\visualStudioProject\DetectionMonitor\Debug\DetectionMonitor.pdb (Partial PDB)
