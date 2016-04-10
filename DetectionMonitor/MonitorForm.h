@@ -613,7 +613,7 @@ namespace DetectionMonitor {
 		catch (System::Exception ^g) {
 		}
 	}
-
+			 //int save = 1;
 			 //发送需要被检测的帧到服务器并返回结果
 	private:void SendFrame() {
 		WaitForSingleObject(frameMutex, INFINITE);
