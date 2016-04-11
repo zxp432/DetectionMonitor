@@ -39,6 +39,8 @@
 #pragma comment (lib, "opencv_video2411.lib")
 #pragma comment (lib, "opencv_videostab2411.lib")
 #include <math.h>
+#include <list>   
+#include <numeric> 
 #include "opencv/cv.h"
 #include "opencv/highgui.h"
 #include "opencv2/opencv.hpp"
@@ -51,13 +53,17 @@
 #include "FeatureTracker.cpp"
 CvCapture* capture;
 IplImage *frame;
+//以下三个设置成全局变量的原因是要释放内存，否则随着程序的运行内存会溢出
 IplImage *frameSend;//用于发送的帧
+IplImage *prevFrame;//用于复制前一帧并存进队列
+IplImage *frameToShow;//用于显示帧
+
 int timeCount;
 double fps;
 int fpsCount;
 int now_frame_no = 0;
 int fame_continue = 6;
-std::queue<IplImage> imageQueue;
+std::queue<IplImage *> imageQueue;
 FeatureTracker tracker;// = new FeatureTracker();
 struct MyRGB
 {
@@ -511,7 +517,6 @@ namespace DetectionMonitor {
 		it = colorMap.find(cls);
 		cvRectangle(img, cvPoint(x1, y1), cvPoint(x2, y2), CV_RGB((*it).second.R, (*it).second.G, (*it).second.B), 2);
 	}
-
 			 //循环画帧
 	private: System::Void frameTimer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		try
@@ -522,10 +527,11 @@ namespace DetectionMonitor {
 				/*cv::Mat output;
 				vector<cv::Point2f> offset(tracker.process(Mat(frame), output, results));
 				frameShowBox->Image = client->ConvertMatToBitmap(output);
-				frameShowBox->Refresh();
-				IplImage *temp = cvCreateImage(cvGetSize(frame), frame->depth, frame->nChannels);
-				cvCopy(frame, temp);*/
-				//imageQueue.push(*frame);
+				frameShowBox->Refresh();*/
+				//cvReleaseImage(&prevFrame);
+				prevFrame = cvCreateImage(cvGetSize(frame), frame->depth, frame->nChannels);
+				cvCopy(frame, prevFrame);
+				imageQueue.push(prevFrame);
 				if (now_frame_no % fame_continue == 0)//发送帧，改变检测结果.
 				{
 					WaitForSingleObject(frameMutex, INFINITE);
@@ -540,65 +546,66 @@ namespace DetectionMonitor {
 					threadList->Add(thread);
 					thread->Start();
 				}
-				labelWarning->Text = "";//初始化警告框
-				IplImage frameToShow = *frame;
-
-				WaitForSingleObject(resultMutex, INFINITE);
-				/*frameRateLabel->Text = "results: " + results->Count;
-				label2->Text = "offset: " + offset.size();*/
-				//画出检测结果
-				//vector<cv::Point2f> offset(tracker.process(Mat(frame), results));
-				for (int i = 0; i < results->Count; i++)
-				{
-					/*if (i < offset.size()) {
-						results[i]->x1 = results[i]->x1 + offset[i].x;
-						results[i]->x2 = results[i]->x2 + offset[i].x;
-						results[i]->y1 = results[i]->y1 + offset[i].y;
-						results[i]->y2 = results[i]->y2 + offset[i].y;
-					}*/
-					char *cls = StringToCharArray(results[i]->cls);
-					char *score = StringToCharArray(results[i]->score);
-					//写字
-					cvText(&frameToShow, cls, results[i]->x1, results[i]->y1, score);
-					//画框子
-					cvFrame(&frameToShow, results[i]->x1, results[i]->y1, results[i]->x2, results[i]->y2, cls);
-				}
-				//for each (UtilSpace::Result ^result in results)
-				//{
-				//	char *cls = StringToCharArray(result->cls);
-				//	char *score = StringToCharArray(result->score);
-				//	//写字
-				//	cvText(&frameToShow, cls, result->x1, result->y1, score);
-				//	//画框子
-				//	cvFrame(&frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
-				//}
-				//画出警告区域
-				for each(UtilSpace::Rectangle ^region in regions) {
-
-					bool call_110 = false;
-					//检测有没有是人的框子踏入了警告区域
-					for each (UtilSpace::Result ^result in results)
+				if (imageQueue.size() == fame_continue) {
+					labelWarning->Text = "";//初始化警告框
+					cvReleaseImage(&frameToShow);
+					frameToShow = imageQueue.front(); 
+					imageQueue.pop();
+					WaitForSingleObject(resultMutex, INFINITE);
+					//画出检测结果
+					//vector<cv::Point2f> offset(tracker.process(Mat(frame), results));
+					for (int i = 0; i < results->Count; i++)
 					{
-						if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(region, result))//如果有人的区域与警告区域重叠，跳出循环，警告
+						/*if (i < offset.size()) {
+							results[i]->x1 = results[i]->x1 + offset[i].x;
+							results[i]->x2 = results[i]->x2 + offset[i].x;
+							results[i]->y1 = results[i]->y1 + offset[i].y;
+							results[i]->y2 = results[i]->y2 + offset[i].y;
+						}*/
+						char *cls = StringToCharArray(results[i]->cls);
+						char *score = StringToCharArray(results[i]->score);
+						//写字
+						cvText(frameToShow, cls, results[i]->x1, results[i]->y1, score);
+						//画框子
+						cvFrame(frameToShow, results[i]->x1, results[i]->y1, results[i]->x2, results[i]->y2, cls);
+					}
+					//for each (UtilSpace::Result ^result in results)
+					//{
+					//	char *cls = StringToCharArray(result->cls);
+					//	char *score = StringToCharArray(result->score);
+					//	//写字
+					//	cvText(&frameToShow, cls, result->x1, result->y1, score);
+					//	//画框子
+					//	cvFrame(&frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
+					//}
+					//画出警告区域
+					for each(UtilSpace::Rectangle ^region in regions) {
+
+						bool call_110 = false;
+						//检测有没有是人的框子踏入了警告区域
+						for each (UtilSpace::Result ^result in results)
 						{
-							call_110 = true;
-							break;
+							if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(region, result))//如果有人的区域与警告区域重叠，跳出循环，警告
+							{
+								call_110 = true;
+								break;
+							}
+						}
+						if (!call_110)
+							cvRectangle(frameToShow, cvPoint(region->x1, region->y1), cvPoint(region->x2, region->y2), CV_RGB(0, 0, 255), 2);
+						else
+						{
+							cvRectangle(frameToShow, cvPoint(region->x1, region->y1), cvPoint(region->x2, region->y2), CV_RGB(255, 0, 0), CV_FILLED);
+							labelWarning->Text = "警告！！！";
+							beepTime->Start();
 						}
 					}
-					if (!call_110)
-						cvRectangle(&frameToShow, cvPoint(region->x1, region->y1), cvPoint(region->x2, region->y2), CV_RGB(0, 0, 255), 2);
-					else
-					{
-						cvRectangle(&frameToShow, cvPoint(region->x1, region->y1), cvPoint(region->x2, region->y2), CV_RGB(255, 0, 0), CV_FILLED);
-						labelWarning->Text = "警告！！！";
-						beepTime->Start();
-					}
+					ReleaseMutex(resultMutex);
+					frameShowBox->Image = gcnew System::Drawing::Bitmap(frameToShow->width, frameToShow->height, frameToShow->widthStep, System::Drawing::Imaging::PixelFormat::Format24bppRgb, (System::IntPtr) frameToShow->imageData);
+					WaitForSingleObject(frameTimerHandle, INFINITE);
+					now_frame_no++;
+					ReleaseMutex(frameTimerHandle);
 				}
-				ReleaseMutex(resultMutex);
-				frameShowBox->Image = gcnew System::Drawing::Bitmap(frameToShow.width, frameToShow.height, frameToShow.widthStep, System::Drawing::Imaging::PixelFormat::Format24bppRgb, (System::IntPtr) frameToShow.imageData);
-				WaitForSingleObject(frameTimerHandle, INFINITE);
-				now_frame_no++;
-				ReleaseMutex(frameTimerHandle);
 			}
 			else
 			{
