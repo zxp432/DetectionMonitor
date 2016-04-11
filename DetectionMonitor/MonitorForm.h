@@ -18,6 +18,7 @@
 #pragma comment (lib, "opencv_ts2411d.lib")
 #pragma comment (lib, "opencv_video2411d.lib")
 #pragma comment (lib, "opencv_videostab2411d.lib")
+
 #pragma comment (lib, "opencv_calib3d2411.lib")
 #pragma comment (lib, "opencv_contrib2411.lib")
 #pragma comment (lib, "opencv_core2411.lib")
@@ -68,12 +69,6 @@ std::map<std::string, MyRGB> colorMap;
 std::map<std::string, MyRGB>::iterator it;
 namespace DetectionMonitor {
 
-	using namespace System;
-	using namespace System::ComponentModel;
-	using namespace System::Collections;
-	using namespace System::Windows::Forms;
-	using namespace System::Data;
-	using namespace System::Drawing;	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
 	using namespace System::Windows::Forms;

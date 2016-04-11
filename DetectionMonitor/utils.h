@@ -1,3 +1,3 @@
 #pragma once
 using namespace System;
-char *StringToCharArray(String ^origin);
+char *StringToCharArray(System::String ^origin);
