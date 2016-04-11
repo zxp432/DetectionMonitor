@@ -91,13 +91,13 @@ namespace DetectionMonitor {
 	public ref class MonitorForm : public System::Windows::Forms::Form
 	{
 	private:Client ^client = gcnew Client();
-			List<UtilSpace::Result ^> ^boxes = gcnew List<UtilSpace::Result ^>();
+			List<UtilSpace::Result ^> ^results = gcnew List<UtilSpace::Result ^>();
 			List<Thread ^> ^threadList = gcnew List<Thread ^>();//将所有线程放入线程池中
 			System::String ^result = "";// "12-12-15-115-0.98-person,12-12-15-115-0.98-person,";
 
 			List<UtilSpace::Rectangle ^> ^regions;
 			HANDLE frameMutex = CreateMutex(NULL, FALSE, NULL);//用于frame多线程读写时的互斥变量
-			HANDLE boxMutex = CreateMutex(NULL, FALSE, NULL);
+			HANDLE resultMutex = CreateMutex(NULL, FALSE, NULL);
 			HANDLE frameTimerHandle = CreateMutex(NULL, FALSE, NULL);
 			HANDLE socketHandle = CreateMutex(NULL, FALSE, NULL);
 			int frameWidth = 640;
@@ -473,10 +473,10 @@ namespace DetectionMonitor {
 			//frameShowBox->Enabled = false;
 			drawing = false;
 			newDraw = false;
-			boxes->Clear();
+			results->Clear();
 			regions->Clear();
 			ReleaseMutex(frameMutex);
-			ReleaseMutex(boxMutex);
+			ReleaseMutex(resultMutex);
 			ReleaseMutex(frameTimerHandle);
 			ReleaseMutex(socketHandle);
 			tracker.finilise();
@@ -525,7 +525,7 @@ namespace DetectionMonitor {
 			if (frame != NULL)
 			{
 				/*cv::Mat output;
-				vector<cv::Point2f> offset(tracker.process(Mat(frame), output, boxes));
+				vector<cv::Point2f> offset(tracker.process(Mat(frame), output, results));
 				frameShowBox->Image = client->ConvertMatToBitmap(output);
 				frameShowBox->Refresh();
 				IplImage *temp = cvCreateImage(cvGetSize(frame), frame->depth, frame->nChannels);
@@ -548,43 +548,43 @@ namespace DetectionMonitor {
 				labelWarning->Text = "";//初始化警告框
 				IplImage frameToShow = *frame;
 
-				WaitForSingleObject(boxMutex, INFINITE);
-				/*frameRateLabel->Text = "boxes: " + boxes->Count;
+				WaitForSingleObject(resultMutex, INFINITE);
+				/*frameRateLabel->Text = "results: " + results->Count;
 				label2->Text = "offset: " + offset.size();*/
 				//画出检测结果
-				//vector<cv::Point2f> offset(tracker.process(Mat(frame), boxes));
-				for (int i = 0; i < boxes->Count; i++)
+				//vector<cv::Point2f> offset(tracker.process(Mat(frame), results));
+				for (int i = 0; i < results->Count; i++)
 				{
 					/*if (i < offset.size()) {
-						boxes[i]->x1 = boxes[i]->x1 + offset[i].x;
-						boxes[i]->x2 = boxes[i]->x2 + offset[i].x;
-						boxes[i]->y1 = boxes[i]->y1 + offset[i].y;
-						boxes[i]->y2 = boxes[i]->y2 + offset[i].y;
+						results[i]->x1 = results[i]->x1 + offset[i].x;
+						results[i]->x2 = results[i]->x2 + offset[i].x;
+						results[i]->y1 = results[i]->y1 + offset[i].y;
+						results[i]->y2 = results[i]->y2 + offset[i].y;
 					}*/
-					char *cls = StringToCharArray(boxes[i]->cls);
-					char *score = StringToCharArray(boxes[i]->score);
+					char *cls = StringToCharArray(results[i]->cls);
+					char *score = StringToCharArray(results[i]->score);
 					//写字
-					cvText(&frameToShow, cls, boxes[i]->x1, boxes[i]->y1, score);
+					cvText(&frameToShow, cls, results[i]->x1, results[i]->y1, score);
 					//画框子
-					cvFrame(&frameToShow, boxes[i]->x1, boxes[i]->y1, boxes[i]->x2, boxes[i]->y2, cls);
+					cvFrame(&frameToShow, results[i]->x1, results[i]->y1, results[i]->x2, results[i]->y2, cls);
 				}
-				//for each (UtilSpace::Result ^box in boxes)
+				//for each (UtilSpace::Result ^result in results)
 				//{
-				//	char *cls = StringToCharArray(box->cls);
-				//	char *score = StringToCharArray(box->score);
+				//	char *cls = StringToCharArray(result->cls);
+				//	char *score = StringToCharArray(result->score);
 				//	//写字
-				//	cvText(&frameToShow, cls, box->x1, box->y1, score);
+				//	cvText(&frameToShow, cls, result->x1, result->y1, score);
 				//	//画框子
-				//	cvFrame(&frameToShow, box->x1, box->y1, box->x2, box->y2, cls);
+				//	cvFrame(&frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
 				//}
 				//画出警告区域
 				for each(UtilSpace::Rectangle ^region in regions) {
 
 					bool call_110 = false;
 					//检测有没有是人的框子踏入了警告区域
-					for each (UtilSpace::Result ^box in boxes)
+					for each (UtilSpace::Result ^result in results)
 					{
-						if (box->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(region, box))//如果有人的区域与警告区域重叠，跳出循环，警告
+						if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(region, result))//如果有人的区域与警告区域重叠，跳出循环，警告
 						{
 							call_110 = true;
 							break;
@@ -599,7 +599,7 @@ namespace DetectionMonitor {
 						beepTime->Start();
 					}
 				}
-				ReleaseMutex(boxMutex);
+				ReleaseMutex(resultMutex);
 				frameShowBox->Image = gcnew System::Drawing::Bitmap(frameToShow.width, frameToShow.height, frameToShow.widthStep, System::Drawing::Imaging::PixelFormat::Format24bppRgb, (System::IntPtr) frameToShow.imageData);
 				WaitForSingleObject(frameTimerHandle, INFINITE);
 				now_frame_no++;
@@ -629,27 +629,27 @@ namespace DetectionMonitor {
 		result = client->receive();
 		client->closeSocket();
 		ReleaseMutex(frameMutex);
-		List<UtilSpace::Result ^> ^boxesTemp = gcnew List<UtilSpace::Result ^>();
+		List<UtilSpace::Result ^> ^resultsTemp = gcnew List<UtilSpace::Result ^>();
 		if (!result->Equals(""))
 		{
-			array<System::String ^> ^boxString = result->Split(',');
-			for (int i = 0; i < boxString->Length - 1; i++)
+			array<System::String ^> ^resultString = result->Split(',');
+			for (int i = 0; i < resultString->Length - 1; i++)
 			{
 				UtilSpace::Result ^temp = gcnew UtilSpace::Result();
-				array<System::String ^> ^box = boxString[i]->Split('-');
-				temp->x1 = int::Parse(box[0]);
-				temp->y1 = int::Parse(box[1]);
-				temp->x2 = int::Parse(box[2]);
-				temp->y2 = int::Parse(box[3]);
-				temp->score = box[4];
-				temp->cls = box[5];
-				boxesTemp->Add(temp);
+				array<System::String ^> ^result = resultString[i]->Split('-');
+				temp->x1 = int::Parse(result[0]);
+				temp->y1 = int::Parse(result[1]);
+				temp->x2 = int::Parse(result[2]);
+				temp->y2 = int::Parse(result[3]);
+				temp->score = result[4];
+				temp->cls = result[5];
+				resultsTemp->Add(temp);
 			}
 		}
-		WaitForSingleObject(boxMutex, INFINITE);
-		boxes = boxesTemp;
+		WaitForSingleObject(resultMutex, INFINITE);
+		results = resultsTemp;
 		fpsCount++;
-		ReleaseMutex(boxMutex);
+		ReleaseMutex(resultMutex);
 	}
 	private: System::Void calculateTImer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		timeCount++;
