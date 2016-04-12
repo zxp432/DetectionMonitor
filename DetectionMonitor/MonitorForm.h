@@ -111,6 +111,43 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::Timer^  beepTimer;
 	private: System::Windows::Forms::Timer^  calculateTImer;
 	private: System::Windows::Forms::OpenFileDialog^  videoFileDialog;
+	private: System::Windows::Forms::TabControl^  tabControl1;
+	private: System::Windows::Forms::TabPage^  mainTabPage;
+	private: System::Windows::Forms::TabPage^  deTabPage;
+	private: System::Windows::Forms::ContextMenuStrip^  contextMenuStrip1;
+	private: System::Windows::Forms::ToolStripMenuItem^  toolStripMenuItem2;
+	private: System::Windows::Forms::ToolStripMenuItem^  toolStripMenuItem3;
+	private: System::Windows::Forms::Button^  videoButton;
+	private: System::Windows::Forms::Button^  captureButton;
+	private: System::Windows::Forms::GroupBox^  derterNumGroupBox;
+	private: System::Windows::Forms::Button^  stopButton;
+	private: System::Windows::Forms::Button^  shelterButton;
+	private: System::Windows::Forms::Label^  cleanLabel;
+	private: System::Windows::Forms::Label^  paintLabel;
+	private: System::Windows::Forms::Label^  shelterLabel;
+	private: System::Windows::Forms::Label^  stopLabel;
+	private: System::Windows::Forms::Button^  startDeButton;
+	private: System::Windows::Forms::GroupBox^  videoGroupBox;
+
+	private: System::Windows::Forms::Button^  setButton;
+
+	private: System::Windows::Forms::Button^  checkButton;
+	private: System::Windows::Forms::Label^  setLabel;
+
+	private: System::Windows::Forms::Label^  checkLabel;
+
+	private: System::Windows::Forms::Label^  startDeLabel;
+	private: System::Windows::Forms::RadioButton^  rectangleButton;
+	private: System::Windows::Forms::RadioButton^  criButton;
+	private: System::Windows::Forms::RadioButton^  polyButton;
+
+
+
+
+
+
+
+
 
 			 System::Windows::Forms::Timer^  beepTime;
 
@@ -162,11 +199,11 @@ namespace DetectionMonitor {
 	protected:
 
 	protected:
-	private: System::Windows::Forms::ComboBox^  detectInterval;
-	private: System::Windows::Forms::Button^  startBtn;
 
-	private: System::Windows::Forms::ComboBox^  detectionSrcCombo;
-	private: System::Windows::Forms::GroupBox^  videoGroup;
+
+
+
+
 	private: System::Windows::Forms::TrackBar^  videoBar;
 
 	private: System::Windows::Forms::PictureBox^  frameShowBox;
@@ -198,105 +235,142 @@ namespace DetectionMonitor {
 		void InitializeComponent(void)
 		{
 			this->components = (gcnew System::ComponentModel::Container());
+			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(MonitorForm::typeid));
 			this->detectionSourceGroup = (gcnew System::Windows::Forms::GroupBox());
-			this->detectInterval = (gcnew System::Windows::Forms::ComboBox());
-			this->startBtn = (gcnew System::Windows::Forms::Button());
-			this->detectionSrcCombo = (gcnew System::Windows::Forms::ComboBox());
-			this->videoGroup = (gcnew System::Windows::Forms::GroupBox());
+			this->videoButton = (gcnew System::Windows::Forms::Button());
+			this->captureButton = (gcnew System::Windows::Forms::Button());
+			this->buttonClean = (gcnew System::Windows::Forms::Button());
+			this->buttonPaint = (gcnew System::Windows::Forms::Button());
 			this->videoBar = (gcnew System::Windows::Forms::TrackBar());
 			this->frameShowBox = (gcnew System::Windows::Forms::PictureBox());
 			this->labelWarning = (gcnew System::Windows::Forms::Label());
-			this->buttonClean = (gcnew System::Windows::Forms::Button());
-			this->buttonPaint = (gcnew System::Windows::Forms::Button());
 			this->receiveRateLabel = (gcnew System::Windows::Forms::Label());
 			this->frameRateLabel = (gcnew System::Windows::Forms::Label());
 			this->frameTimer = (gcnew System::Windows::Forms::Timer(this->components));
 			this->beepTimer = (gcnew System::Windows::Forms::Timer(this->components));
 			this->calculateTImer = (gcnew System::Windows::Forms::Timer(this->components));
 			this->videoFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
+			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
+			this->mainTabPage = (gcnew System::Windows::Forms::TabPage());
+			this->setLabel = (gcnew System::Windows::Forms::Label());
+			this->checkLabel = (gcnew System::Windows::Forms::Label());
+			this->startDeLabel = (gcnew System::Windows::Forms::Label());
+			this->setButton = (gcnew System::Windows::Forms::Button());
+			this->checkButton = (gcnew System::Windows::Forms::Button());
+			this->startDeButton = (gcnew System::Windows::Forms::Button());
+			this->deTabPage = (gcnew System::Windows::Forms::TabPage());
+			this->videoGroupBox = (gcnew System::Windows::Forms::GroupBox());
+			this->polyButton = (gcnew System::Windows::Forms::RadioButton());
+			this->criButton = (gcnew System::Windows::Forms::RadioButton());
+			this->rectangleButton = (gcnew System::Windows::Forms::RadioButton());
+			this->paintLabel = (gcnew System::Windows::Forms::Label());
+			this->stopLabel = (gcnew System::Windows::Forms::Label());
+			this->shelterLabel = (gcnew System::Windows::Forms::Label());
+			this->cleanLabel = (gcnew System::Windows::Forms::Label());
+			this->stopButton = (gcnew System::Windows::Forms::Button());
+			this->shelterButton = (gcnew System::Windows::Forms::Button());
+			this->derterNumGroupBox = (gcnew System::Windows::Forms::GroupBox());
+			this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
+			this->toolStripMenuItem2 = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->toolStripMenuItem3 = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->detectionSourceGroup->SuspendLayout();
-			this->videoGroup->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->videoBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frameShowBox))->BeginInit();
+			this->tabControl1->SuspendLayout();
+			this->mainTabPage->SuspendLayout();
+			this->deTabPage->SuspendLayout();
+			this->videoGroupBox->SuspendLayout();
+			this->derterNumGroupBox->SuspendLayout();
+			this->contextMenuStrip1->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// detectionSourceGroup
 			// 
-			this->detectionSourceGroup->Controls->Add(this->detectInterval);
-			this->detectionSourceGroup->Controls->Add(this->startBtn);
-			this->detectionSourceGroup->Controls->Add(this->detectionSrcCombo);
-			this->detectionSourceGroup->Font = (gcnew System::Drawing::Font(L"Calibri", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+			this->detectionSourceGroup->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(240)),
+				static_cast<System::Int32>(static_cast<System::Byte>(240)), static_cast<System::Int32>(static_cast<System::Byte>(240)));
+			this->detectionSourceGroup->Controls->Add(this->videoButton);
+			this->detectionSourceGroup->Controls->Add(this->captureButton);
+			this->detectionSourceGroup->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
-			this->detectionSourceGroup->Location = System::Drawing::Point(3, 3);
+			this->detectionSourceGroup->Location = System::Drawing::Point(3, 6);
 			this->detectionSourceGroup->Name = L"detectionSourceGroup";
-			this->detectionSourceGroup->Size = System::Drawing::Size(666, 62);
+			this->detectionSourceGroup->Size = System::Drawing::Size(168, 318);
 			this->detectionSourceGroup->TabIndex = 11;
 			this->detectionSourceGroup->TabStop = false;
 			this->detectionSourceGroup->Text = L"检测源";
 			// 
-			// detectInterval
+			// videoButton
 			// 
-			this->detectInterval->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
-			this->detectInterval->FormattingEnabled = true;
-			this->detectInterval->Items->AddRange(gcnew cli::array< System::Object^  >(31) {
-				L"1", L"2", L"3", L"4", L"5", L"6", L"7",
-					L"8", L"9", L"10", L"11", L"12", L"13", L"14", L"15", L"16", L"17", L"18", L"19", L"20", L"21", L"22", L"23", L"24", L"25", L"26",
-					L"27", L"28", L"29", L"30", L"检测帧间隔"
-			});
-			this->detectInterval->Location = System::Drawing::Point(336, 23);
-			this->detectInterval->Name = L"detectInterval";
-			this->detectInterval->Size = System::Drawing::Size(93, 27);
-			this->detectInterval->TabIndex = 2;
+			this->videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(200)), static_cast<System::Int32>(static_cast<System::Byte>(200)),
+				static_cast<System::Int32>(static_cast<System::Byte>(200)));
+			this->videoButton->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->videoButton->Location = System::Drawing::Point(13, 59);
+			this->videoButton->Name = L"videoButton";
+			this->videoButton->Size = System::Drawing::Size(142, 27);
+			this->videoButton->TabIndex = 16;
+			this->videoButton->Text = L"视频检测";
+			this->videoButton->UseVisualStyleBackColor = false;
+			this->videoButton->Click += gcnew System::EventHandler(this, &MonitorForm::videoButton_Click);
 			// 
-			// startBtn
+			// captureButton
 			// 
-			this->startBtn->Location = System::Drawing::Point(435, 23);
-			this->startBtn->Name = L"startBtn";
-			this->startBtn->Size = System::Drawing::Size(79, 27);
-			this->startBtn->TabIndex = 1;
-			this->startBtn->Text = L"开始";
-			this->startBtn->UseVisualStyleBackColor = true;
-			this->startBtn->Click += gcnew System::EventHandler(this, &MonitorForm::startBtn_Click);
+			this->captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(200)), static_cast<System::Int32>(static_cast<System::Byte>(200)),
+				static_cast<System::Int32>(static_cast<System::Byte>(200)));
+			this->captureButton->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->captureButton->ForeColor = System::Drawing::Color::Black;
+			this->captureButton->Location = System::Drawing::Point(13, 26);
+			this->captureButton->Name = L"captureButton";
+			this->captureButton->Size = System::Drawing::Size(142, 27);
+			this->captureButton->TabIndex = 15;
+			this->captureButton->Text = L"摄像头检测";
+			this->captureButton->UseVisualStyleBackColor = false;
+			this->captureButton->Click += gcnew System::EventHandler(this, &MonitorForm::captureButton_Click);
 			// 
-			// detectionSrcCombo
+			// buttonClean
 			// 
-			this->detectionSrcCombo->DropDownStyle = System::Windows::Forms::ComboBoxStyle::DropDownList;
-			this->detectionSrcCombo->FormattingEnabled = true;
-			this->detectionSrcCombo->Items->AddRange(gcnew cli::array< System::Object^  >(3) { L"打开摄像头进行检测", L"选择视频进行检测", L"请选择检测种类" });
-			this->detectionSrcCombo->Location = System::Drawing::Point(13, 23);
-			this->detectionSrcCombo->Name = L"detectionSrcCombo";
-			this->detectionSrcCombo->Size = System::Drawing::Size(317, 27);
-			this->detectionSrcCombo->TabIndex = 0;
+			this->buttonClean->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"buttonClean.BackgroundImage")));
+			this->buttonClean->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->buttonClean->Enabled = false;
+			this->buttonClean->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
+			this->buttonClean->Location = System::Drawing::Point(138, 523);
+			this->buttonClean->Name = L"buttonClean";
+			this->buttonClean->Size = System::Drawing::Size(35, 35);
+			this->buttonClean->TabIndex = 14;
+			this->buttonClean->UseVisualStyleBackColor = true;
+			this->buttonClean->Click += gcnew System::EventHandler(this, &MonitorForm::buttonClean_Click);
+			this->buttonClean->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::buttonClean_MouseLeave);
+			this->buttonClean->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::buttonClean_MouseMove);
 			// 
-			// videoGroup
+			// buttonPaint
 			// 
-			this->videoGroup->Controls->Add(this->videoBar);
-			this->videoGroup->Controls->Add(this->frameShowBox);
-			this->videoGroup->Font = (gcnew System::Drawing::Font(L"Calibri", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(0)));
-			this->videoGroup->Location = System::Drawing::Point(5, 61);
-			this->videoGroup->Margin = System::Windows::Forms::Padding(5);
-			this->videoGroup->Name = L"videoGroup";
-			this->videoGroup->Padding = System::Windows::Forms::Padding(5);
-			this->videoGroup->Size = System::Drawing::Size(664, 559);
-			this->videoGroup->TabIndex = 12;
-			this->videoGroup->TabStop = false;
-			this->videoGroup->Text = L"视频";
+			this->buttonPaint->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"buttonPaint.BackgroundImage")));
+			this->buttonPaint->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->buttonPaint->Enabled = false;
+			this->buttonPaint->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
+			this->buttonPaint->Location = System::Drawing::Point(97, 523);
+			this->buttonPaint->Name = L"buttonPaint";
+			this->buttonPaint->Size = System::Drawing::Size(35, 35);
+			this->buttonPaint->TabIndex = 13;
+			this->buttonPaint->UseVisualStyleBackColor = true;
+			this->buttonPaint->Click += gcnew System::EventHandler(this, &MonitorForm::buttonPaint_Click);
+			this->buttonPaint->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::buttonPaint_MouseLeave);
+			this->buttonPaint->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::buttonPaint_MouseMove);
 			// 
 			// videoBar
 			// 
 			this->videoBar->AutoSize = false;
-			this->videoBar->Location = System::Drawing::Point(13, 534);
+			this->videoBar->Location = System::Drawing::Point(179, 532);
 			this->videoBar->Name = L"videoBar";
-			this->videoBar->Size = System::Drawing::Size(639, 26);
+			this->videoBar->Size = System::Drawing::Size(476, 26);
 			this->videoBar->TabIndex = 1;
 			this->videoBar->Visible = false;
 			this->videoBar->Scroll += gcnew System::EventHandler(this, &MonitorForm::videoBar_Scroll);
 			// 
 			// frameShowBox
 			// 
+			this->frameShowBox->BackColor = System::Drawing::Color::Black;
 			this->frameShowBox->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
-			this->frameShowBox->Location = System::Drawing::Point(12, 38);
+			this->frameShowBox->Location = System::Drawing::Point(15, 28);
 			this->frameShowBox->Name = L"frameShowBox";
 			this->frameShowBox->Size = System::Drawing::Size(640, 480);
 			this->frameShowBox->SizeMode = System::Windows::Forms::PictureBoxSizeMode::StretchImage;
@@ -311,52 +385,28 @@ namespace DetectionMonitor {
 			this->labelWarning->AutoSize = true;
 			this->labelWarning->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
 			this->labelWarning->ForeColor = System::Drawing::Color::Red;
-			this->labelWarning->Location = System::Drawing::Point(280, 638);
+			this->labelWarning->Location = System::Drawing::Point(6, 132);
 			this->labelWarning->Name = L"labelWarning";
 			this->labelWarning->Size = System::Drawing::Size(0, 23);
 			this->labelWarning->TabIndex = 15;
 			// 
-			// buttonClean
-			// 
-			this->buttonClean->Enabled = false;
-			this->buttonClean->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
-			this->buttonClean->Location = System::Drawing::Point(126, 633);
-			this->buttonClean->Name = L"buttonClean";
-			this->buttonClean->Size = System::Drawing::Size(102, 33);
-			this->buttonClean->TabIndex = 14;
-			this->buttonClean->Text = L"清除区域";
-			this->buttonClean->UseVisualStyleBackColor = true;
-			this->buttonClean->Click += gcnew System::EventHandler(this, &MonitorForm::buttonClean_Click);
-			// 
-			// buttonPaint
-			// 
-			this->buttonPaint->Enabled = false;
-			this->buttonPaint->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
-			this->buttonPaint->Location = System::Drawing::Point(18, 633);
-			this->buttonPaint->Name = L"buttonPaint";
-			this->buttonPaint->Size = System::Drawing::Size(102, 33);
-			this->buttonPaint->TabIndex = 13;
-			this->buttonPaint->Text = L"新建区域";
-			this->buttonPaint->UseVisualStyleBackColor = true;
-			this->buttonPaint->Click += gcnew System::EventHandler(this, &MonitorForm::buttonPaint_Click);
-			// 
 			// receiveRateLabel
 			// 
 			this->receiveRateLabel->AutoSize = true;
-			this->receiveRateLabel->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
-			this->receiveRateLabel->Location = System::Drawing::Point(280, 688);
+			this->receiveRateLabel->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->receiveRateLabel->Location = System::Drawing::Point(6, 39);
 			this->receiveRateLabel->Name = L"receiveRateLabel";
-			this->receiveRateLabel->Size = System::Drawing::Size(135, 23);
+			this->receiveRateLabel->Size = System::Drawing::Size(95, 18);
 			this->receiveRateLabel->TabIndex = 12;
 			this->receiveRateLabel->Text = L"平均接收帧率:";
 			// 
 			// frameRateLabel
 			// 
 			this->frameRateLabel->AutoSize = true;
-			this->frameRateLabel->Font = (gcnew System::Drawing::Font(L"Calibri", 14.25F));
-			this->frameRateLabel->Location = System::Drawing::Point(25, 688);
+			this->frameRateLabel->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->frameRateLabel->Location = System::Drawing::Point(6, 67);
 			this->frameRateLabel->Name = L"frameRateLabel";
-			this->frameRateLabel->Size = System::Drawing::Size(95, 23);
+			this->frameRateLabel->Size = System::Drawing::Size(67, 18);
 			this->frameRateLabel->TabIndex = 11;
 			this->frameRateLabel->Text = L"视频帧率:";
 			// 
@@ -379,87 +429,306 @@ namespace DetectionMonitor {
 			// 
 			this->videoFileDialog->FileName = L"videoFileDialog";
 			// 
+			// tabControl1
+			// 
+			this->tabControl1->Controls->Add(this->mainTabPage);
+			this->tabControl1->Controls->Add(this->deTabPage);
+			this->tabControl1->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->tabControl1->Location = System::Drawing::Point(3, 3);
+			this->tabControl1->Name = L"tabControl1";
+			this->tabControl1->SelectedIndex = 0;
+			this->tabControl1->Size = System::Drawing::Size(854, 745);
+			this->tabControl1->TabIndex = 3;
+			this->tabControl1->DoubleClick += gcnew System::EventHandler(this, &MonitorForm::tabControl1_DoubleClick);
+			// 
+			// mainTabPage
+			// 
+			this->mainTabPage->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(240)), static_cast<System::Int32>(static_cast<System::Byte>(240)),
+				static_cast<System::Int32>(static_cast<System::Byte>(240)));
+			this->mainTabPage->Controls->Add(this->setLabel);
+			this->mainTabPage->Controls->Add(this->checkLabel);
+			this->mainTabPage->Controls->Add(this->startDeLabel);
+			this->mainTabPage->Controls->Add(this->setButton);
+			this->mainTabPage->Controls->Add(this->checkButton);
+			this->mainTabPage->Controls->Add(this->startDeButton);
+			this->mainTabPage->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12));
+			this->mainTabPage->Location = System::Drawing::Point(4, 29);
+			this->mainTabPage->Name = L"mainTabPage";
+			this->mainTabPage->Padding = System::Windows::Forms::Padding(3);
+			this->mainTabPage->Size = System::Drawing::Size(846, 712);
+			this->mainTabPage->TabIndex = 0;
+			this->mainTabPage->Text = L"主页";
+			// 
+			// setLabel
+			// 
+			this->setLabel->AutoSize = true;
+			this->setLabel->Location = System::Drawing::Point(329, 118);
+			this->setLabel->Name = L"setLabel";
+			this->setLabel->Size = System::Drawing::Size(41, 20);
+			this->setLabel->TabIndex = 3;
+			this->setLabel->Text = L"设置";
+			// 
+			// checkLabel
+			// 
+			this->checkLabel->AutoSize = true;
+			this->checkLabel->Location = System::Drawing::Point(186, 118);
+			this->checkLabel->Name = L"checkLabel";
+			this->checkLabel->Size = System::Drawing::Size(73, 20);
+			this->checkLabel->TabIndex = 3;
+			this->checkLabel->Text = L"查看证据";
+			// 
+			// startDeLabel
+			// 
+			this->startDeLabel->AutoSize = true;
+			this->startDeLabel->Location = System::Drawing::Point(71, 118);
+			this->startDeLabel->Name = L"startDeLabel";
+			this->startDeLabel->Size = System::Drawing::Size(41, 20);
+			this->startDeLabel->TabIndex = 3;
+			this->startDeLabel->Text = L"开始";
+			// 
+			// setButton
+			// 
+			this->setButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"setButton.BackgroundImage")));
+			this->setButton->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->setButton->Location = System::Drawing::Point(314, 40);
+			this->setButton->Name = L"setButton";
+			this->setButton->Size = System::Drawing::Size(75, 75);
+			this->setButton->TabIndex = 2;
+			this->setButton->UseVisualStyleBackColor = true;
+			// 
+			// checkButton
+			// 
+			this->checkButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"checkButton.BackgroundImage")));
+			this->checkButton->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->checkButton->Location = System::Drawing::Point(184, 40);
+			this->checkButton->Name = L"checkButton";
+			this->checkButton->Size = System::Drawing::Size(75, 75);
+			this->checkButton->TabIndex = 1;
+			this->checkButton->UseVisualStyleBackColor = true;
+			// 
+			// startDeButton
+			// 
+			this->startDeButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"startDeButton.BackgroundImage")));
+			this->startDeButton->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->startDeButton->Location = System::Drawing::Point(54, 40);
+			this->startDeButton->Name = L"startDeButton";
+			this->startDeButton->Size = System::Drawing::Size(75, 75);
+			this->startDeButton->TabIndex = 0;
+			this->startDeButton->UseVisualStyleBackColor = true;
+			this->startDeButton->Click += gcnew System::EventHandler(this, &MonitorForm::startDeButton_Click);
+			// 
+			// deTabPage
+			// 
+			this->deTabPage->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(240)), static_cast<System::Int32>(static_cast<System::Byte>(240)),
+				static_cast<System::Int32>(static_cast<System::Byte>(240)));
+			this->deTabPage->Controls->Add(this->videoGroupBox);
+			this->deTabPage->Controls->Add(this->derterNumGroupBox);
+			this->deTabPage->Controls->Add(this->detectionSourceGroup);
+			this->deTabPage->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12));
+			this->deTabPage->Location = System::Drawing::Point(4, 29);
+			this->deTabPage->Name = L"deTabPage";
+			this->deTabPage->Padding = System::Windows::Forms::Padding(3);
+			this->deTabPage->Size = System::Drawing::Size(846, 712);
+			this->deTabPage->TabIndex = 1;
+			this->deTabPage->Text = L"检测页面";
+			// 
+			// videoGroupBox
+			// 
+			this->videoGroupBox->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
+				static_cast<System::Int32>(static_cast<System::Byte>(50)));
+			this->videoGroupBox->Controls->Add(this->polyButton);
+			this->videoGroupBox->Controls->Add(this->criButton);
+			this->videoGroupBox->Controls->Add(this->rectangleButton);
+			this->videoGroupBox->Controls->Add(this->paintLabel);
+			this->videoGroupBox->Controls->Add(this->stopLabel);
+			this->videoGroupBox->Controls->Add(this->shelterLabel);
+			this->videoGroupBox->Controls->Add(this->cleanLabel);
+			this->videoGroupBox->Controls->Add(this->frameShowBox);
+			this->videoGroupBox->Controls->Add(this->videoBar);
+			this->videoGroupBox->Controls->Add(this->buttonClean);
+			this->videoGroupBox->Controls->Add(this->buttonPaint);
+			this->videoGroupBox->Controls->Add(this->stopButton);
+			this->videoGroupBox->Controls->Add(this->shelterButton);
+			this->videoGroupBox->Location = System::Drawing::Point(177, -20);
+			this->videoGroupBox->Name = L"videoGroupBox";
+			this->videoGroupBox->Size = System::Drawing::Size(669, 585);
+			this->videoGroupBox->TabIndex = 20;
+			this->videoGroupBox->TabStop = false;
+			// 
+			// polyButton
+			// 
+			this->polyButton->AutoSize = true;
+			this->polyButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
+				static_cast<System::Int32>(static_cast<System::Byte>(50)));
+			this->polyButton->Location = System::Drawing::Point(233, 502);
+			this->polyButton->Name = L"polyButton";
+			this->polyButton->Size = System::Drawing::Size(75, 24);
+			this->polyButton->TabIndex = 17;
+			this->polyButton->TabStop = true;
+			this->polyButton->Text = L"多边形";
+			this->polyButton->UseVisualStyleBackColor = false;
+			this->polyButton->Visible = false;
+			// 
+			// criButton
+			// 
+			this->criButton->AutoSize = true;
+			this->criButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
+				static_cast<System::Int32>(static_cast<System::Byte>(50)));
+			this->criButton->Location = System::Drawing::Point(168, 502);
+			this->criButton->Name = L"criButton";
+			this->criButton->Size = System::Drawing::Size(59, 24);
+			this->criButton->TabIndex = 17;
+			this->criButton->TabStop = true;
+			this->criButton->Text = L"椭圆";
+			this->criButton->UseVisualStyleBackColor = false;
+			this->criButton->Visible = false;
+			// 
+			// rectangleButton
+			// 
+			this->rectangleButton->AutoSize = true;
+			this->rectangleButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
+				static_cast<System::Int32>(static_cast<System::Byte>(50)));
+			this->rectangleButton->Location = System::Drawing::Point(103, 502);
+			this->rectangleButton->Name = L"rectangleButton";
+			this->rectangleButton->Size = System::Drawing::Size(59, 24);
+			this->rectangleButton->TabIndex = 17;
+			this->rectangleButton->TabStop = true;
+			this->rectangleButton->Text = L"矩形";
+			this->rectangleButton->UseVisualStyleBackColor = false;
+			this->rectangleButton->Visible = false;
+			// 
+			// paintLabel
+			// 
+			this->paintLabel->AutoSize = true;
+			this->paintLabel->BackColor = System::Drawing::Color::White;
+			this->paintLabel->Location = System::Drawing::Point(93, 500);
+			this->paintLabel->Name = L"paintLabel";
+			this->paintLabel->Size = System::Drawing::Size(73, 20);
+			this->paintLabel->TabIndex = 19;
+			this->paintLabel->Text = L"新建区域";
+			this->paintLabel->Visible = false;
+			// 
+			// stopLabel
+			// 
+			this->stopLabel->AutoSize = true;
+			this->stopLabel->BackColor = System::Drawing::Color::White;
+			this->stopLabel->Location = System::Drawing::Point(16, 504);
+			this->stopLabel->Name = L"stopLabel";
+			this->stopLabel->Size = System::Drawing::Size(41, 20);
+			this->stopLabel->TabIndex = 19;
+			this->stopLabel->Text = L"停止";
+			this->stopLabel->Visible = false;
+			// 
+			// shelterLabel
+			// 
+			this->shelterLabel->AutoSize = true;
+			this->shelterLabel->BackColor = System::Drawing::Color::White;
+			this->shelterLabel->Location = System::Drawing::Point(57, 504);
+			this->shelterLabel->Name = L"shelterLabel";
+			this->shelterLabel->Size = System::Drawing::Size(144, 20);
+			this->shelterLabel->TabIndex = 19;
+			this->shelterLabel->Text = L"开启/关闭异物遮挡";
+			this->shelterLabel->Visible = false;
+			// 
+			// cleanLabel
+			// 
+			this->cleanLabel->AutoSize = true;
+			this->cleanLabel->BackColor = System::Drawing::Color::White;
+			this->cleanLabel->Location = System::Drawing::Point(130, 500);
+			this->cleanLabel->Name = L"cleanLabel";
+			this->cleanLabel->Size = System::Drawing::Size(73, 20);
+			this->cleanLabel->TabIndex = 19;
+			this->cleanLabel->Text = L"删除区域";
+			this->cleanLabel->Visible = false;
+			// 
+			// stopButton
+			// 
+			this->stopButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"stopButton.BackgroundImage")));
+			this->stopButton->Location = System::Drawing::Point(15, 523);
+			this->stopButton->Name = L"stopButton";
+			this->stopButton->Size = System::Drawing::Size(35, 35);
+			this->stopButton->TabIndex = 17;
+			this->stopButton->UseVisualStyleBackColor = true;
+			this->stopButton->Click += gcnew System::EventHandler(this, &MonitorForm::stopButton_Click);
+			this->stopButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::stopButton_MouseLeave);
+			this->stopButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::stopButton_MouseMove);
+			// 
+			// shelterButton
+			// 
+			this->shelterButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"shelterButton.BackgroundImage")));
+			this->shelterButton->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->shelterButton->Location = System::Drawing::Point(56, 523);
+			this->shelterButton->Name = L"shelterButton";
+			this->shelterButton->Size = System::Drawing::Size(35, 35);
+			this->shelterButton->TabIndex = 18;
+			this->shelterButton->UseVisualStyleBackColor = true;
+			this->shelterButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::shelterButton_MouseLeave);
+			this->shelterButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::shelterButton_MouseMove);
+			// 
+			// derterNumGroupBox
+			// 
+			this->derterNumGroupBox->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(240)),
+				static_cast<System::Int32>(static_cast<System::Byte>(240)), static_cast<System::Int32>(static_cast<System::Byte>(240)));
+			this->derterNumGroupBox->Controls->Add(this->labelWarning);
+			this->derterNumGroupBox->Controls->Add(this->receiveRateLabel);
+			this->derterNumGroupBox->Controls->Add(this->frameRateLabel);
+			this->derterNumGroupBox->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->derterNumGroupBox->Location = System::Drawing::Point(3, 330);
+			this->derterNumGroupBox->Name = L"derterNumGroupBox";
+			this->derterNumGroupBox->Size = System::Drawing::Size(168, 208);
+			this->derterNumGroupBox->TabIndex = 16;
+			this->derterNumGroupBox->TabStop = false;
+			this->derterNumGroupBox->Text = L"检测参数";
+			// 
+			// contextMenuStrip1
+			// 
+			this->contextMenuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->toolStripMenuItem2,
+					this->toolStripMenuItem3
+			});
+			this->contextMenuStrip1->Name = L"contextMenuStrip1";
+			this->contextMenuStrip1->Size = System::Drawing::Size(84, 48);
+			// 
+			// toolStripMenuItem2
+			// 
+			this->toolStripMenuItem2->Name = L"toolStripMenuItem2";
+			this->toolStripMenuItem2->Size = System::Drawing::Size(83, 22);
+			this->toolStripMenuItem2->Text = L"1";
+			// 
+			// toolStripMenuItem3
+			// 
+			this->toolStripMenuItem3->Name = L"toolStripMenuItem3";
+			this->toolStripMenuItem3->Size = System::Drawing::Size(83, 22);
+			this->toolStripMenuItem3->Text = L"2";
+			// 
 			// MonitorForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(682, 736);
-			this->Controls->Add(this->labelWarning);
-			this->Controls->Add(this->buttonClean);
-			this->Controls->Add(this->buttonPaint);
-			this->Controls->Add(this->receiveRateLabel);
-			this->Controls->Add(this->frameRateLabel);
-			this->Controls->Add(this->videoGroup);
-			this->Controls->Add(this->detectionSourceGroup);
+			this->ClientSize = System::Drawing::Size(851, 571);
+			this->Controls->Add(this->tabControl1);
 			this->Name = L"MonitorForm";
 			this->Text = L"MonitorForm";
 			this->detectionSourceGroup->ResumeLayout(false);
-			this->videoGroup->ResumeLayout(false);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->videoBar))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frameShowBox))->EndInit();
+			this->tabControl1->ResumeLayout(false);
+			this->mainTabPage->ResumeLayout(false);
+			this->mainTabPage->PerformLayout();
+			this->deTabPage->ResumeLayout(false);
+			this->videoGroupBox->ResumeLayout(false);
+			this->videoGroupBox->PerformLayout();
+			this->derterNumGroupBox->ResumeLayout(false);
+			this->derterNumGroupBox->PerformLayout();
+			this->contextMenuStrip1->ResumeLayout(false);
 			this->ResumeLayout(false);
-			this->PerformLayout();
 
 		}
 #pragma endregion
 
 	private: System::Void startBtn_Click(System::Object^  sender, System::EventArgs^  e) {
-		if (detectionSrcCombo->Text == "请选择检测种类" || detectInterval->Text == "检测帧率")
-		{
-			MessageBox::Show(this, "请选择检测种类或帧率", "错误!!!");
-		}
-		if (startBtn->Text == "开始")
-		{
-			if (detectionSrcCombo->Text == "打开摄像头进行检测")
-			{
-				capture = cvCaptureFromCAM(0);
-				//fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
-				fame_continue = int::Parse(detectInterval->Text);
-				videoBar->Visible = false;
-				videoBar->Minimum = 0;
-				videoBar->Maximum = 0;
-				startBtn->Text = "停止";
-				timeCount = 0;
-				fpsCount = 0;
-				frameTimer->Start();
-				calculateTImer->Start();
-				frameShowBox->Location = System::Drawing::Point(12, 38);
-				frameRateLabel->Text = "视频帧率:";
-				frameWidth = 640;
-				frameHeight = 480;
-				buttonPaint->Enabled = true;
-				buttonClean->Enabled = true;
-			}
-			else if (detectionSrcCombo->Text == "选择视频进行检测")
-			{
-				videoFileDialog->Filter = "AVI files (*.avi)|*.txt|All files (*.*)|*.*";
-				videoFileDialog->FilterIndex = 2;
-				videoFileDialog->RestoreDirectory = true;
-				videoFileDialog->FileName = "";
-				videoBar->Visible = true;
-				videoBar->Value = 0;
-				frameShowBox->Location = System::Drawing::Point(12, 28);
-				if (videoFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK)
-				{
-					char *fileName = (char*)Marshal::StringToHGlobalAnsi(videoFileDialog->FileName).ToPointer();
-					capture = cvCaptureFromFile(fileName);
-					fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
-					fame_continue = int::Parse(detectInterval->Text);
-					videoBar->Minimum = 0;
-					timeCount = 0;
-					fpsCount = 0;
-					calculateTImer->Start();
-					//frameRateLabel->Text = "视频帧率: " + double(int(fps * 100)) / 100 + "fps";
-					videoBar->Maximum = (int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT);
-					startBtn->Text = "停止";
-					frameTimer->Start();
-					buttonPaint->Enabled = false;
-					buttonClean->Enabled = false;
-				}
-			}
-		}
-		else if (startBtn->Text == "停止")
-		{
 			frameTimer->Stop();
 			calculateTImer->Stop();
 			for each(Thread ^t in threadList)
@@ -467,7 +736,6 @@ namespace DetectionMonitor {
 				t->Join();
 			}
 			cvReleaseCapture(&capture);
-			startBtn->Text = "开始";
 			now_frame_no = 0;
 			startPoint = nullptr;
 			endPoint = nullptr;
@@ -486,7 +754,6 @@ namespace DetectionMonitor {
 			/*while (!imageQueue.empty()) {
 			imageQueue.pop();
 			}*/
-		}
 	}
 			 //视频滚动条的函数
 	private: System::Void videoBar_Scroll(System::Object^  sender, System::EventArgs^  e) {
@@ -699,8 +966,12 @@ namespace DetectionMonitor {
 			}
 		}
 	}
-	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e) {
-		newDraw = true;
+	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e){
+		polyButton->Visible = true;
+		criButton->Visible = true;
+		rectangleButton->Visible = true;
+		rectangleButton->Checked = true;
+		//newDraw = true;
 	}
 	private: System::Void buttonClean_Click(System::Object^  sender, System::EventArgs^  e) {
 		regions->Clear();
@@ -712,5 +983,106 @@ namespace DetectionMonitor {
 		sp->Play();
 		beepTime->Stop();
 	}
-	};
+	private: System::Void captureButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		capture = cvCaptureFromCAM(0);
+		//fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
+		fame_continue = 6;
+		videoBar->Visible = false;
+		videoBar->Minimum = 0;
+		videoBar->Maximum = 0;
+		timeCount = 0;
+		fpsCount = 0;
+		frameTimer->Start();
+		calculateTImer->Start();
+		frameRateLabel->Text = "视频帧率:";
+		frameWidth = 640;
+		frameHeight = 480;
+		buttonPaint->Enabled = true;
+		buttonClean->Enabled = true;
+	}
+private: System::Void videoButton_Click(System::Object^  sender, System::EventArgs^  e) {
+	videoFileDialog->Filter = "AVI files (*.avi)|*.txt|All files (*.*)|*.*";
+	videoFileDialog->FilterIndex = 2;
+	videoFileDialog->RestoreDirectory = true;
+	videoFileDialog->FileName = "";
+	videoBar->Visible = true;
+	videoBar->Value = 0;
+	if (videoFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+	{
+		char *fileName = (char*)Marshal::StringToHGlobalAnsi(videoFileDialog->FileName).ToPointer();
+		capture = cvCaptureFromFile(fileName);
+		fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
+		fame_continue = 6;
+		videoBar->Minimum = 0;
+		timeCount = 0;
+		fpsCount = 0;
+		calculateTImer->Start();
+		//frameRateLabel->Text = "视频帧率: " + double(int(fps * 100)) / 100 + "fps";
+		videoBar->Maximum = (int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT);
+		frameTimer->Start();
+		buttonPaint->Enabled = false;
+		buttonClean->Enabled = false;
+	}
+
+}
+private: System::Void stopButton_Click(System::Object^  sender, System::EventArgs^  e) {
+	frameTimer->Stop();
+	calculateTImer->Stop();
+	for each(Thread ^t in threadList)
+	{
+		t->Join();
+	}
+	cvReleaseCapture(&capture);
+	now_frame_no = 0;
+	startPoint = nullptr;
+	endPoint = nullptr;
+	//frameShowBox->Enabled = false;
+	drawing = false;
+	newDraw = false;
+	results->Clear();
+	regions->Clear();
+	ReleaseMutex(frameMutex);
+	ReleaseMutex(resultMutex);
+	ReleaseMutex(frameTimerHandle);
+	ReleaseMutex(socketHandle);
+	tracker.finilise();
+	int frameWidth = 640;
+	int frameHeight = 480;
+	/*while (!imageQueue.empty()) {
+	imageQueue.pop();
+	}*/
+}
+
+private: System::Void stopButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+	stopLabel->Visible = false;
+}
+private: System::Void stopButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+	stopLabel->Visible = true;
+}
+private: System::Void shelterButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+	shelterLabel->Visible = true;
+}
+private: System::Void shelterButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+	shelterLabel->Visible = false;
+}
+private: System::Void buttonPaint_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+	paintLabel->Visible = true;
+}
+private: System::Void buttonPaint_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+	paintLabel->Visible = false;
+}
+private: System::Void buttonClean_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+	cleanLabel->Visible = true;
+}
+private: System::Void buttonClean_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+	cleanLabel->Visible = false;
+}
+private: System::Void startDeButton_Click(System::Object^  sender, System::EventArgs^  e) {
+	tabControl1->Controls->Add(deTabPage);
+	tabControl1->SelectedIndex = 1;
+}
+private: System::Void tabControl1_DoubleClick(System::Object^  sender, System::EventArgs^  e) {
+	tabControl1->Controls->Remove(deTabPage);
+}
+};
 }
