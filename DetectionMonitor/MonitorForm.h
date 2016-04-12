@@ -96,7 +96,7 @@ namespace DetectionMonitor {
 			List<Thread ^> ^threadList = gcnew List<Thread ^>();//将所有线程放入线程池中
 			System::String ^result = "";// "12-12-15-115-0.98-person,12-12-15-115-0.98-person,";
 
-			List<UtilSpace::Rectangle ^> ^regions;
+			List<List<UtilSpace::Point ^> ^> ^regions;
 			HANDLE frameMutex = CreateMutex(NULL, FALSE, NULL);//用于frame多线程读写时的互斥变量
 			HANDLE resultMutex = CreateMutex(NULL, FALSE, NULL);
 			HANDLE frameTimerHandle = CreateMutex(NULL, FALSE, NULL);
@@ -176,7 +176,7 @@ namespace DetectionMonitor {
 			colorMap["sofa"] = { 138, 43, 226 };
 			colorMap["train"] = { 48, 128, 20 };
 			colorMap[""] = { 0, 0, 0 };
-			regions = gcnew List<UtilSpace::Rectangle^>();
+			regions = gcnew List<List<UtilSpace::Point ^> ^>();
 
 			InitializeComponent();
 			//
@@ -453,6 +453,7 @@ namespace DetectionMonitor {
 			this->mainTabPage->Controls->Add(this->checkButton);
 			this->mainTabPage->Controls->Add(this->startDeButton);
 			this->mainTabPage->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12));
+			this->mainTabPage->ForeColor = System::Drawing::SystemColors::ControlText;
 			this->mainTabPage->Location = System::Drawing::Point(4, 29);
 			this->mainTabPage->Name = L"mainTabPage";
 			this->mainTabPage->Padding = System::Windows::Forms::Padding(3);
@@ -846,26 +847,43 @@ namespace DetectionMonitor {
 					//	cvFrame(&frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
 					//}
 					//画出警告区域
-					for each(UtilSpace::Rectangle ^region in regions) {
+					for each(List<UtilSpace::Point ^> ^region in regions) {
 
 						bool call_110 = false;
+						int count = region->Count;
+						//if(count>2 && region[count]->x == region[2]->x && region[count]->y == region[2]->y){
 						//检测有没有是人的框子踏入了警告区域
 						for each (UtilSpace::Result ^result in results)
 						{
-							if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(region, result))//如果有人的区域与警告区域重叠，跳出循环，警告
+							if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoAreasOverlapped(region, result))//如果有人的区域与警告区域重叠，跳出循环，警告
 							{
 								call_110 = true;
 								break;
 							}
 						}
-						if (!call_110)
-							cvRectangle(frameToShow, cvPoint(region->x1, region->y1), cvPoint(region->x2, region->y2), CV_RGB(0, 0, 255), 2);
+						//}
+						if (!call_110) {
+							int i = 3;
+							for (; i < region->Count; i++)//画之前的线段
+								cvLine(frameToShow, cvPoint(region[i - 1]->x, region[i - 1]->y), cvPoint(region[i]->x, region[i]->y), CV_RGB(255, 255, 255), 1, CV_AA, 0);
+						}
+
 						else
 						{
-							cvRectangle(frameToShow, cvPoint(region->x1, region->y1), cvPoint(region->x2, region->y2), CV_RGB(255, 0, 0), CV_FILLED);
+							int i = 3;
+							for (; i < region->Count; i++)//画之前的线段
+								cvLine(frameToShow, cvPoint(region[i - 1]->x, region[i - 1]->y), cvPoint(region[i]->x, region[i]->y), CV_RGB(255, 0, 0), 1, CV_AA, 0);
 							labelWarning->Text = "警告！！！";
-							beepTime->Start();
+							//beepTime->Start();
 						}
+
+					}
+					if (drawing && !newDraw)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
+					{
+						cvCircle(frameToShow, cvPoint(region[2]->x, region[2]->y), 10, CV_RGB(255, 255, 255), 1, CV_AA, 0);
+						int i = 3;
+						for (; i < region->Count; i++)//画之前的线段
+							cvLine(frameToShow, cvPoint(region[i - 1]->x, region[i - 1]->y), cvPoint(region[i]->x, region[i]->y), CV_RGB(255, 255, 255), 1, CV_AA, 0);
 					}
 					ReleaseMutex(resultMutex);
 					frameShowBox->Image = gcnew System::Drawing::Bitmap(frameToShow->width, frameToShow->height, frameToShow->widthStep, System::Drawing::Imaging::PixelFormat::Format24bppRgb, (System::IntPtr) frameToShow->imageData);
@@ -926,55 +944,100 @@ namespace DetectionMonitor {
 		receiveRateLabel->Text = "平均接收帧率: " + (double)((int)(((double)fpsCount / timeCount) * 100)) / 100 + "fps";
 	}
 	private: System::Void frameShowBox_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		if (newDraw) {
-			startPoint = gcnew System::Drawing::Point(e->X, e->Y);
-			endPoint = nullptr;
-			drawing = true;
-		}
-	}
-	private: System::Void frameShowBox_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		if (newDraw) {
-			drawing = false;
-			endPoint = gcnew System::Drawing::Point(e->X, e->Y);
-			newDraw = false;
-			//计算当前picturebox上的点的位置
-			int topleftX = startPoint->X < endPoint->X ? startPoint->X : endPoint->X;
-			int topleftY = startPoint->Y < endPoint->Y ? startPoint->Y : endPoint->Y;
-			int bootomRightX = startPoint->X > endPoint->X ? startPoint->X : endPoint->X;
-			int bootomRightY = startPoint->Y > endPoint->Y ? startPoint->Y : endPoint->Y;
-			//映射回frame
-			int x1 = frameWidth * topleftX / frameShowBox->Width;
-			int y1 = frameHeight * topleftY / frameShowBox->Height;
-			int x2 = frameWidth * bootomRightX / frameShowBox->Width;
-			int y2 = frameHeight * bootomRightY / frameShowBox->Height;
+		if (drawing) {
+			int x = frameWidth * e->X / frameShowBox->Width;
+			int y = frameHeight * e->Y / frameShowBox->Height;
+			region->Add(gcnew UtilSpace::Point(x, y));
 
-			regions->Add(gcnew UtilSpace::Rectangle(x1, y1, x2, y2));
-		}
-	}
-	private: System::Void frameShowBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		Graphics ^g = frameShowBox->CreateGraphics();
-		if (e->Button == System::Windows::Forms::MouseButtons::Left) {
-			if (drawing)
-			{
-				g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;//消除锯齿  
-				frameShowBox->Refresh();
-				//找出矩形的最左上角
-				int leftTopX = startPoint->X < e->X ? startPoint->X : e->X;
-				int leftTopY = startPoint->Y < e->Y ? startPoint->Y : e->Y;
+			if (newDraw) {
+				//先加入两个点记录该多边形的外切矩形的x1,y1,x2,y2
+				region->Add(gcnew UtilSpace::Point(x, y));
+				region->Add(gcnew UtilSpace::Point(x, y));
+				endPoint = nullptr;
+				newDraw = false;
+			}
+			else {
+				//先判断新增加的线段有没有和之前的线段相交
+				bool isIntersect = false;
+				for (int i = 3; i < region->Count - 2; i++)//不判断最新边和它的上一条边是否重合
+					if (UtilSpace::Rectangle::isIntersect(region[i], region[i - 1], region[region->Count - 2], region[region->Count - 1]))
+						isIntersect = true;
 
-				g->DrawRectangle(gcnew Pen(Color::Blue, 2), leftTopX, leftTopY, Math::Abs(e->X - startPoint->X), Math::Abs(e->Y - startPoint->Y));
+				if (isIntersect) {
+					region = nullptr;
+					drawing = false;
+					MessageBox::Show("新建多边形边不允许相交！", "警告", MessageBoxButtons::OK);
+				}
+				else {
+					if (abs(x - region[2]->x <= 10 && abs(y - region[2]->y <= 10))) {
+						drawing = false;
+						region[region->Count - 1]->x = region[2]->x;
+						region[region->Count - 1]->y = region[2]->y;
+						regions->Add(region);
+						region = nullptr;
+					}
+					else {
+						//更改外切矩形的参数
+						if (region[0]->x > x)
+							region[0]->x = x;
+						if (region[0]->y > y)
+							region[0]->y = y;
+						if (region[1]->x < x)
+							region[1]->x = x;
+						if (region[1]->y < y)
+							region[1]->y = y;
+					}
+				}
 			}
 		}
 	}
+	private: System::Void frameShowBox_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		//if (newDraw) {
+		//	drawing = false;
+		//	endPoint = gcnew System::Drawing::Point(e->X, e->Y);
+		//	newDraw = false;
+		//	//计算当前picturebox上的点的位置
+		//	int topleftX = startPoint->X < endPoint->X ? startPoint->X : endPoint->X;
+		//	int topleftY = startPoint->Y < endPoint->Y ? startPoint->Y : endPoint->Y;
+		//	int bootomRightX = startPoint->X > endPoint->X ? startPoint->X : endPoint->X;
+		//	int bootomRightY = startPoint->Y > endPoint->Y ? startPoint->Y : endPoint->Y;
+		//	//映射回frame
+		//	int x1 = frameWidth * topleftX / frameShowBox->Width;
+		//	int y1 = frameHeight * topleftY / frameShowBox->Height;
+		//	int x2 = frameWidth * bootomRightX / frameShowBox->Width;
+		//	int y2 = frameHeight * bootomRightY / frameShowBox->Height;
+
+		//	regions->Add(gcnew UtilSpace::Rectangle(x1, y1, x2, y2));
+		//}
+	}
+	private: System::Void frameShowBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		//Graphics ^g = frameShowBox->CreateGraphics();
+		//if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+		//	if (drawing)
+		//	{
+		//		g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;//消除锯齿  
+		//		frameShowBox->Refresh();
+		//		//找出矩形的最左上角
+		//		int leftTopX = startPoint->X < e->X ? startPoint->X : e->X;
+		//		int leftTopY = startPoint->Y < e->Y ? startPoint->Y : e->Y;
+
+		//		g->DrawRectangle(gcnew Pen(Color::Blue, 2), leftTopX, leftTopY, Math::Abs(e->X - startPoint->X), Math::Abs(e->Y - startPoint->Y));
+		//	}
+		//}
+	}
+	private: List<UtilSpace::Point ^> ^region;
 	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e){
 		polyButton->Visible = true;
 		criButton->Visible = true;
 		rectangleButton->Visible = true;
 		rectangleButton->Checked = true;
-		//newDraw = true;
+		newDraw = true;//记录是不是多边形的第一个点
+		drawing = true;//记录是不是正在画图
+		region = gcnew List<UtilSpace::Point ^>();
 	}
 	private: System::Void buttonClean_Click(System::Object^  sender, System::EventArgs^  e) {
 		regions->Clear();
+		region = nullptr;
 	}
 			 //警告区域相关的函数结束
 	private: System::Void beepTimer_Tick(System::Object^  sender, System::EventArgs^  e) {
