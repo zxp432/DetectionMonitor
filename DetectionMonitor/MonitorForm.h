@@ -137,13 +137,16 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::Label^  checkLabel;
 
 	private: System::Windows::Forms::Label^  startDeLabel;
-	private: System::Windows::Forms::RadioButton^  rectangleButton;
-	private: System::Windows::Forms::RadioButton^  criButton;
-	private: System::Windows::Forms::RadioButton^  polyButton;
+
+
+
 	private: System::Windows::Forms::GroupBox^  groupBox1;
 	private: System::Windows::Forms::Button^  mainButton;
 	private: System::Windows::Forms::Button^  deButton;
 	private: System::Windows::Forms::GroupBox^  groupBox2;
+	private: System::Windows::Forms::Button^  button3;
+	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Button^  button1;
 
 
 
@@ -261,6 +264,15 @@ namespace DetectionMonitor {
 			this->calculateTImer = (gcnew System::Windows::Forms::Timer(this->components));
 			this->videoFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
+			this->deTabPage = (gcnew System::Windows::Forms::TabPage());
+			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
+			this->derterNumGroupBox = (gcnew System::Windows::Forms::GroupBox());
+			this->stopButton = (gcnew System::Windows::Forms::Button());
+			this->paintLabel = (gcnew System::Windows::Forms::Label());
+			this->cleanLabel = (gcnew System::Windows::Forms::Label());
+			this->shelterButton = (gcnew System::Windows::Forms::Button());
+			this->stopLabel = (gcnew System::Windows::Forms::Label());
+			this->shelterLabel = (gcnew System::Windows::Forms::Label());
 			this->mainTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->groupBox2 = (gcnew System::Windows::Forms::GroupBox());
 			this->startDeButton = (gcnew System::Windows::Forms::Button());
@@ -269,32 +281,23 @@ namespace DetectionMonitor {
 			this->checkLabel = (gcnew System::Windows::Forms::Label());
 			this->setButton = (gcnew System::Windows::Forms::Button());
 			this->startDeLabel = (gcnew System::Windows::Forms::Label());
-			this->deTabPage = (gcnew System::Windows::Forms::TabPage());
-			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
-			this->polyButton = (gcnew System::Windows::Forms::RadioButton());
-			this->criButton = (gcnew System::Windows::Forms::RadioButton());
-			this->rectangleButton = (gcnew System::Windows::Forms::RadioButton());
-			this->derterNumGroupBox = (gcnew System::Windows::Forms::GroupBox());
-			this->stopButton = (gcnew System::Windows::Forms::Button());
-			this->paintLabel = (gcnew System::Windows::Forms::Label());
-			this->cleanLabel = (gcnew System::Windows::Forms::Label());
-			this->shelterButton = (gcnew System::Windows::Forms::Button());
-			this->stopLabel = (gcnew System::Windows::Forms::Label());
-			this->shelterLabel = (gcnew System::Windows::Forms::Label());
 			this->contextMenuStrip1 = (gcnew System::Windows::Forms::ContextMenuStrip(this->components));
 			this->toolStripMenuItem2 = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->toolStripMenuItem3 = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->mainButton = (gcnew System::Windows::Forms::Button());
 			this->deButton = (gcnew System::Windows::Forms::Button());
+			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->button3 = (gcnew System::Windows::Forms::Button());
 			this->detectionSourceGroup->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->videoBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frameShowBox))->BeginInit();
 			this->tabControl1->SuspendLayout();
-			this->mainTabPage->SuspendLayout();
-			this->groupBox2->SuspendLayout();
 			this->deTabPage->SuspendLayout();
 			this->groupBox1->SuspendLayout();
 			this->derterNumGroupBox->SuspendLayout();
+			this->mainTabPage->SuspendLayout();
+			this->groupBox2->SuspendLayout();
 			this->contextMenuStrip1->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -457,7 +460,6 @@ namespace DetectionMonitor {
 			// 
 			// tabControl1
 			// 
-			this->tabControl1->Controls->Add(this->mainTabPage);
 			this->tabControl1->Controls->Add(this->deTabPage);
 			this->tabControl1->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(134)));
@@ -467,6 +469,129 @@ namespace DetectionMonitor {
 			this->tabControl1->Size = System::Drawing::Size(859, 810);
 			this->tabControl1->TabIndex = 3;
 			this->tabControl1->DoubleClick += gcnew System::EventHandler(this, &MonitorForm::tabControl1_DoubleClick);
+			// 
+			// deTabPage
+			// 
+			this->deTabPage->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)),
+				static_cast<System::Int32>(static_cast<System::Byte>(28)));
+			this->deTabPage->Controls->Add(this->groupBox1);
+			this->deTabPage->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12));
+			this->deTabPage->Location = System::Drawing::Point(4, 29);
+			this->deTabPage->Name = L"deTabPage";
+			this->deTabPage->Padding = System::Windows::Forms::Padding(3);
+			this->deTabPage->Size = System::Drawing::Size(851, 777);
+			this->deTabPage->TabIndex = 1;
+			this->deTabPage->Text = L"检测页面";
+			// 
+			// groupBox1
+			// 
+			this->groupBox1->Controls->Add(this->button3);
+			this->groupBox1->Controls->Add(this->button2);
+			this->groupBox1->Controls->Add(this->button1);
+			this->groupBox1->Controls->Add(this->buttonClean);
+			this->groupBox1->Controls->Add(this->videoBar);
+			this->groupBox1->Controls->Add(this->buttonPaint);
+			this->groupBox1->Controls->Add(this->derterNumGroupBox);
+			this->groupBox1->Controls->Add(this->stopButton);
+			this->groupBox1->Controls->Add(this->paintLabel);
+			this->groupBox1->Controls->Add(this->cleanLabel);
+			this->groupBox1->Controls->Add(this->detectionSourceGroup);
+			this->groupBox1->Controls->Add(this->shelterButton);
+			this->groupBox1->Controls->Add(this->stopLabel);
+			this->groupBox1->Controls->Add(this->shelterLabel);
+			this->groupBox1->Controls->Add(this->frameShowBox);
+			this->groupBox1->Location = System::Drawing::Point(-4, 19);
+			this->groupBox1->Name = L"groupBox1";
+			this->groupBox1->Size = System::Drawing::Size(906, 631);
+			this->groupBox1->TabIndex = 20;
+			this->groupBox1->TabStop = false;
+			this->groupBox1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::groupBox1_Paint);
+			// 
+			// derterNumGroupBox
+			// 
+			this->derterNumGroupBox->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)),
+				static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+			this->derterNumGroupBox->Controls->Add(this->labelWarning);
+			this->derterNumGroupBox->Controls->Add(this->receiveRateLabel);
+			this->derterNumGroupBox->Controls->Add(this->frameRateLabel);
+			this->derterNumGroupBox->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(134)));
+			this->derterNumGroupBox->ForeColor = System::Drawing::Color::White;
+			this->derterNumGroupBox->Location = System::Drawing::Point(6, 341);
+			this->derterNumGroupBox->Name = L"derterNumGroupBox";
+			this->derterNumGroupBox->Size = System::Drawing::Size(168, 203);
+			this->derterNumGroupBox->TabIndex = 16;
+			this->derterNumGroupBox->TabStop = false;
+			this->derterNumGroupBox->Text = L"检测参数";
+			this->derterNumGroupBox->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::derterNumGroupBox_Paint);
+			// 
+			// stopButton
+			// 
+			this->stopButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"stopButton.BackgroundImage")));
+			this->stopButton->Location = System::Drawing::Point(180, 511);
+			this->stopButton->Name = L"stopButton";
+			this->stopButton->Size = System::Drawing::Size(35, 35);
+			this->stopButton->TabIndex = 17;
+			this->stopButton->UseVisualStyleBackColor = true;
+			this->stopButton->Click += gcnew System::EventHandler(this, &MonitorForm::stopButton_Click);
+			this->stopButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::stopButton_MouseLeave);
+			this->stopButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::stopButton_MouseMove);
+			// 
+			// paintLabel
+			// 
+			this->paintLabel->AutoSize = true;
+			this->paintLabel->BackColor = System::Drawing::Color::White;
+			this->paintLabel->Location = System::Drawing::Point(264, 488);
+			this->paintLabel->Name = L"paintLabel";
+			this->paintLabel->Size = System::Drawing::Size(73, 20);
+			this->paintLabel->TabIndex = 19;
+			this->paintLabel->Text = L"新建区域";
+			this->paintLabel->Visible = false;
+			// 
+			// cleanLabel
+			// 
+			this->cleanLabel->AutoSize = true;
+			this->cleanLabel->BackColor = System::Drawing::Color::White;
+			this->cleanLabel->Location = System::Drawing::Point(299, 486);
+			this->cleanLabel->Name = L"cleanLabel";
+			this->cleanLabel->Size = System::Drawing::Size(73, 20);
+			this->cleanLabel->TabIndex = 19;
+			this->cleanLabel->Text = L"删除区域";
+			this->cleanLabel->Visible = false;
+			// 
+			// shelterButton
+			// 
+			this->shelterButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"shelterButton.BackgroundImage")));
+			this->shelterButton->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
+			this->shelterButton->Location = System::Drawing::Point(221, 511);
+			this->shelterButton->Name = L"shelterButton";
+			this->shelterButton->Size = System::Drawing::Size(35, 35);
+			this->shelterButton->TabIndex = 18;
+			this->shelterButton->UseVisualStyleBackColor = true;
+			this->shelterButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::shelterButton_MouseLeave);
+			this->shelterButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::shelterButton_MouseMove);
+			// 
+			// stopLabel
+			// 
+			this->stopLabel->AutoSize = true;
+			this->stopLabel->BackColor = System::Drawing::Color::White;
+			this->stopLabel->Location = System::Drawing::Point(180, 488);
+			this->stopLabel->Name = L"stopLabel";
+			this->stopLabel->Size = System::Drawing::Size(41, 20);
+			this->stopLabel->TabIndex = 19;
+			this->stopLabel->Text = L"停止";
+			this->stopLabel->Visible = false;
+			// 
+			// shelterLabel
+			// 
+			this->shelterLabel->AutoSize = true;
+			this->shelterLabel->BackColor = System::Drawing::Color::White;
+			this->shelterLabel->Location = System::Drawing::Point(217, 488);
+			this->shelterLabel->Name = L"shelterLabel";
+			this->shelterLabel->Size = System::Drawing::Size(144, 20);
+			this->shelterLabel->TabIndex = 19;
+			this->shelterLabel->Text = L"开启/关闭异物遮挡";
+			this->shelterLabel->Visible = false;
 			// 
 			// mainTabPage
 			// 
@@ -563,171 +688,6 @@ namespace DetectionMonitor {
 			this->startDeLabel->TabIndex = 3;
 			this->startDeLabel->Text = L"开始";
 			// 
-			// deTabPage
-			// 
-			this->deTabPage->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)),
-				static_cast<System::Int32>(static_cast<System::Byte>(28)));
-			this->deTabPage->Controls->Add(this->groupBox1);
-			this->deTabPage->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12));
-			this->deTabPage->Location = System::Drawing::Point(4, 29);
-			this->deTabPage->Name = L"deTabPage";
-			this->deTabPage->Padding = System::Windows::Forms::Padding(3);
-			this->deTabPage->Size = System::Drawing::Size(851, 777);
-			this->deTabPage->TabIndex = 1;
-			this->deTabPage->Text = L"检测页面";
-			// 
-			// groupBox1
-			// 
-			this->groupBox1->Controls->Add(this->frameShowBox);
-			this->groupBox1->Controls->Add(this->polyButton);
-			this->groupBox1->Controls->Add(this->buttonClean);
-			this->groupBox1->Controls->Add(this->criButton);
-			this->groupBox1->Controls->Add(this->videoBar);
-			this->groupBox1->Controls->Add(this->rectangleButton);
-			this->groupBox1->Controls->Add(this->buttonPaint);
-			this->groupBox1->Controls->Add(this->derterNumGroupBox);
-			this->groupBox1->Controls->Add(this->stopButton);
-			this->groupBox1->Controls->Add(this->paintLabel);
-			this->groupBox1->Controls->Add(this->cleanLabel);
-			this->groupBox1->Controls->Add(this->detectionSourceGroup);
-			this->groupBox1->Controls->Add(this->shelterButton);
-			this->groupBox1->Controls->Add(this->stopLabel);
-			this->groupBox1->Controls->Add(this->shelterLabel);
-			this->groupBox1->Location = System::Drawing::Point(-4, 19);
-			this->groupBox1->Name = L"groupBox1";
-			this->groupBox1->Size = System::Drawing::Size(906, 631);
-			this->groupBox1->TabIndex = 20;
-			this->groupBox1->TabStop = false;
-			this->groupBox1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::groupBox1_Paint);
-			// 
-			// polyButton
-			// 
-			this->polyButton->AutoSize = true;
-			this->polyButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
-				static_cast<System::Int32>(static_cast<System::Byte>(50)));
-			this->polyButton->Location = System::Drawing::Point(392, 484);
-			this->polyButton->Name = L"polyButton";
-			this->polyButton->Size = System::Drawing::Size(75, 24);
-			this->polyButton->TabIndex = 17;
-			this->polyButton->TabStop = true;
-			this->polyButton->Text = L"多边形";
-			this->polyButton->UseVisualStyleBackColor = false;
-			this->polyButton->Visible = false;
-			// 
-			// criButton
-			// 
-			this->criButton->AutoSize = true;
-			this->criButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
-				static_cast<System::Int32>(static_cast<System::Byte>(50)));
-			this->criButton->Location = System::Drawing::Point(327, 484);
-			this->criButton->Name = L"criButton";
-			this->criButton->Size = System::Drawing::Size(59, 24);
-			this->criButton->TabIndex = 17;
-			this->criButton->TabStop = true;
-			this->criButton->Text = L"椭圆";
-			this->criButton->UseVisualStyleBackColor = false;
-			this->criButton->Visible = false;
-			// 
-			// rectangleButton
-			// 
-			this->rectangleButton->AutoSize = true;
-			this->rectangleButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(50)), static_cast<System::Int32>(static_cast<System::Byte>(50)),
-				static_cast<System::Int32>(static_cast<System::Byte>(50)));
-			this->rectangleButton->Location = System::Drawing::Point(262, 484);
-			this->rectangleButton->Name = L"rectangleButton";
-			this->rectangleButton->Size = System::Drawing::Size(59, 24);
-			this->rectangleButton->TabIndex = 17;
-			this->rectangleButton->TabStop = true;
-			this->rectangleButton->Text = L"矩形";
-			this->rectangleButton->UseVisualStyleBackColor = false;
-			this->rectangleButton->Visible = false;
-			// 
-			// derterNumGroupBox
-			// 
-			this->derterNumGroupBox->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)),
-				static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
-			this->derterNumGroupBox->Controls->Add(this->labelWarning);
-			this->derterNumGroupBox->Controls->Add(this->receiveRateLabel);
-			this->derterNumGroupBox->Controls->Add(this->frameRateLabel);
-			this->derterNumGroupBox->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-				static_cast<System::Byte>(134)));
-			this->derterNumGroupBox->ForeColor = System::Drawing::Color::White;
-			this->derterNumGroupBox->Location = System::Drawing::Point(6, 341);
-			this->derterNumGroupBox->Name = L"derterNumGroupBox";
-			this->derterNumGroupBox->Size = System::Drawing::Size(168, 203);
-			this->derterNumGroupBox->TabIndex = 16;
-			this->derterNumGroupBox->TabStop = false;
-			this->derterNumGroupBox->Text = L"检测参数";
-			this->derterNumGroupBox->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::derterNumGroupBox_Paint);
-			// 
-			// stopButton
-			// 
-			this->stopButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"stopButton.BackgroundImage")));
-			this->stopButton->Location = System::Drawing::Point(180, 511);
-			this->stopButton->Name = L"stopButton";
-			this->stopButton->Size = System::Drawing::Size(35, 35);
-			this->stopButton->TabIndex = 17;
-			this->stopButton->UseVisualStyleBackColor = true;
-			this->stopButton->Click += gcnew System::EventHandler(this, &MonitorForm::stopButton_Click);
-			this->stopButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::stopButton_MouseLeave);
-			this->stopButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::stopButton_MouseMove);
-			// 
-			// paintLabel
-			// 
-			this->paintLabel->AutoSize = true;
-			this->paintLabel->BackColor = System::Drawing::Color::White;
-			this->paintLabel->Location = System::Drawing::Point(264, 488);
-			this->paintLabel->Name = L"paintLabel";
-			this->paintLabel->Size = System::Drawing::Size(73, 20);
-			this->paintLabel->TabIndex = 19;
-			this->paintLabel->Text = L"新建区域";
-			this->paintLabel->Visible = false;
-			// 
-			// cleanLabel
-			// 
-			this->cleanLabel->AutoSize = true;
-			this->cleanLabel->BackColor = System::Drawing::Color::White;
-			this->cleanLabel->Location = System::Drawing::Point(299, 486);
-			this->cleanLabel->Name = L"cleanLabel";
-			this->cleanLabel->Size = System::Drawing::Size(73, 20);
-			this->cleanLabel->TabIndex = 19;
-			this->cleanLabel->Text = L"删除区域";
-			this->cleanLabel->Visible = false;
-			// 
-			// shelterButton
-			// 
-			this->shelterButton->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"shelterButton.BackgroundImage")));
-			this->shelterButton->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Stretch;
-			this->shelterButton->Location = System::Drawing::Point(221, 511);
-			this->shelterButton->Name = L"shelterButton";
-			this->shelterButton->Size = System::Drawing::Size(35, 35);
-			this->shelterButton->TabIndex = 18;
-			this->shelterButton->UseVisualStyleBackColor = true;
-			this->shelterButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::shelterButton_MouseLeave);
-			this->shelterButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::shelterButton_MouseMove);
-			// 
-			// stopLabel
-			// 
-			this->stopLabel->AutoSize = true;
-			this->stopLabel->BackColor = System::Drawing::Color::White;
-			this->stopLabel->Location = System::Drawing::Point(180, 488);
-			this->stopLabel->Name = L"stopLabel";
-			this->stopLabel->Size = System::Drawing::Size(41, 20);
-			this->stopLabel->TabIndex = 19;
-			this->stopLabel->Text = L"停止";
-			this->stopLabel->Visible = false;
-			// 
-			// shelterLabel
-			// 
-			this->shelterLabel->AutoSize = true;
-			this->shelterLabel->BackColor = System::Drawing::Color::White;
-			this->shelterLabel->Location = System::Drawing::Point(217, 488);
-			this->shelterLabel->Name = L"shelterLabel";
-			this->shelterLabel->Size = System::Drawing::Size(144, 20);
-			this->shelterLabel->TabIndex = 19;
-			this->shelterLabel->Text = L"开启/关闭异物遮挡";
-			this->shelterLabel->Visible = false;
-			// 
 			// contextMenuStrip1
 			// 
 			this->contextMenuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
@@ -786,6 +746,45 @@ namespace DetectionMonitor {
 			this->deButton->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::button1_Paint);
 			this->deButton->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::deButton_MouseDown);
 			// 
+			// button1
+			// 
+			this->button1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->button1->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->button1->ForeColor = System::Drawing::Color::White;
+			this->button1->Location = System::Drawing::Point(262, 487);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(75, 23);
+			this->button1->TabIndex = 20;
+			this->button1->Text = L"矩形";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Visible = false;
+			// 
+			// button2
+			// 
+			this->button2->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->button2->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->button2->ForeColor = System::Drawing::Color::White;
+			this->button2->Location = System::Drawing::Point(343, 488);
+			this->button2->Name = L"button2";
+			this->button2->Size = System::Drawing::Size(75, 23);
+			this->button2->TabIndex = 20;
+			this->button2->Text = L"矩形";
+			this->button2->UseVisualStyleBackColor = true;
+			this->button2->Visible = false;
+			// 
+			// button3
+			// 
+			this->button3->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->button3->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->button3->ForeColor = System::Drawing::Color::White;
+			this->button3->Location = System::Drawing::Point(424, 490);
+			this->button3->Name = L"button3";
+			this->button3->Size = System::Drawing::Size(75, 23);
+			this->button3->TabIndex = 20;
+			this->button3->Text = L"矩形";
+			this->button3->UseVisualStyleBackColor = true;
+			this->button3->Visible = false;
+			// 
 			// MonitorForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
@@ -802,14 +801,14 @@ namespace DetectionMonitor {
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->videoBar))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frameShowBox))->EndInit();
 			this->tabControl1->ResumeLayout(false);
-			this->mainTabPage->ResumeLayout(false);
-			this->groupBox2->ResumeLayout(false);
-			this->groupBox2->PerformLayout();
 			this->deTabPage->ResumeLayout(false);
 			this->groupBox1->ResumeLayout(false);
 			this->groupBox1->PerformLayout();
 			this->derterNumGroupBox->ResumeLayout(false);
 			this->derterNumGroupBox->PerformLayout();
+			this->mainTabPage->ResumeLayout(false);
+			this->groupBox2->ResumeLayout(false);
+			this->groupBox2->PerformLayout();
 			this->contextMenuStrip1->ResumeLayout(false);
 			this->ResumeLayout(false);
 
@@ -1114,10 +1113,9 @@ namespace DetectionMonitor {
 	}
 	private: List<UtilSpace::Point ^> ^region;
 	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e){
-		polyButton->Visible = true;
-		criButton->Visible = true;
-		rectangleButton->Visible = true;
-		rectangleButton->Checked = true;
+		button1->Visible = true;
+		button2->Visible = true;
+		button3->Visible = true;
 		newDraw = true;//记录是不是多边形的第一个点
 		drawing = true;//记录是不是正在画图
 		region = gcnew List<UtilSpace::Point ^>();
