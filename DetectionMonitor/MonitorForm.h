@@ -96,7 +96,10 @@ namespace DetectionMonitor {
 			List<Thread ^> ^threadList = gcnew List<Thread ^>();//将所有线程放入线程池中
 			System::String ^result = "";// "12-12-15-115-0.98-person,12-12-15-115-0.98-person,";
 
+			List<UtilSpace::Rectangle ^> ^rectangles;
 			List<List<UtilSpace::Point ^> ^> ^regions;
+			int regionType = 0;//1代表矩形，2椭圆，3多边形
+
 			HANDLE frameMutex = CreateMutex(NULL, FALSE, NULL);//用于frame多线程读写时的互斥变量
 			HANDLE resultMutex = CreateMutex(NULL, FALSE, NULL);
 			HANDLE frameTimerHandle = CreateMutex(NULL, FALSE, NULL);
@@ -127,19 +130,11 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::Label^  shelterLabel;
 	private: System::Windows::Forms::Label^  stopLabel;
 	private: System::Windows::Forms::Button^  startDeButton;
-
-
 	private: System::Windows::Forms::Button^  setButton;
-
 	private: System::Windows::Forms::Button^  checkButton;
 	private: System::Windows::Forms::Label^  setLabel;
-
 	private: System::Windows::Forms::Label^  checkLabel;
-
 	private: System::Windows::Forms::Label^  startDeLabel;
-
-
-
 	private: System::Windows::Forms::GroupBox^  groupBox1;
 	private: System::Windows::Forms::Button^  mainButton;
 	private: System::Windows::Forms::Button^  deButton;
@@ -147,21 +142,6 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::Button^  button3;
 	private: System::Windows::Forms::Button^  button2;
 	private: System::Windows::Forms::Button^  button1;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 			 System::Windows::Forms::Timer^  beepTime;
 
 	public:
@@ -190,6 +170,7 @@ namespace DetectionMonitor {
 			colorMap["train"] = { 48, 128, 20 };
 			colorMap[""] = { 0, 0, 0 };
 			regions = gcnew List<List<UtilSpace::Point ^> ^>();
+			rectangles = gcnew List<UtilSpace::Rectangle ^>();
 
 			InitializeComponent();
 			//
@@ -209,30 +190,14 @@ namespace DetectionMonitor {
 			}
 		}
 	private: System::Windows::Forms::GroupBox^  detectionSourceGroup;
-	protected:
-
-	protected:
-
-
-
-
-
 	private: System::Windows::Forms::TrackBar^  videoBar;
-
 	private: System::Windows::Forms::PictureBox^  frameShowBox;
 	private: System::Windows::Forms::Label^  labelWarning;
 	private: System::Windows::Forms::Button^  buttonClean;
 	private: System::Windows::Forms::Button^  buttonPaint;
 	private: System::Windows::Forms::Label^  receiveRateLabel;
-
 	private: System::Windows::Forms::Label^  frameRateLabel;
 	private: System::ComponentModel::IContainer^  components;
-
-
-
-
-
-	protected:
 
 	private:
 		/// <summary>
@@ -266,6 +231,9 @@ namespace DetectionMonitor {
 			this->tabControl1 = (gcnew System::Windows::Forms::TabControl());
 			this->deTabPage = (gcnew System::Windows::Forms::TabPage());
 			this->groupBox1 = (gcnew System::Windows::Forms::GroupBox());
+			this->button3 = (gcnew System::Windows::Forms::Button());
+			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->derterNumGroupBox = (gcnew System::Windows::Forms::GroupBox());
 			this->stopButton = (gcnew System::Windows::Forms::Button());
 			this->paintLabel = (gcnew System::Windows::Forms::Label());
@@ -286,9 +254,6 @@ namespace DetectionMonitor {
 			this->toolStripMenuItem3 = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->mainButton = (gcnew System::Windows::Forms::Button());
 			this->deButton = (gcnew System::Windows::Forms::Button());
-			this->button1 = (gcnew System::Windows::Forms::Button());
-			this->button2 = (gcnew System::Windows::Forms::Button());
-			this->button3 = (gcnew System::Windows::Forms::Button());
 			this->detectionSourceGroup->SuspendLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->videoBar))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frameShowBox))->BeginInit();
@@ -506,6 +471,48 @@ namespace DetectionMonitor {
 			this->groupBox1->TabIndex = 20;
 			this->groupBox1->TabStop = false;
 			this->groupBox1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::groupBox1_Paint);
+			// 
+			// button3
+			// 
+			this->button3->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->button3->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->button3->ForeColor = System::Drawing::Color::White;
+			this->button3->Location = System::Drawing::Point(424, 490);
+			this->button3->Name = L"button3";
+			this->button3->Size = System::Drawing::Size(75, 23);
+			this->button3->TabIndex = 20;
+			this->button3->Text = L"多边形";
+			this->button3->UseVisualStyleBackColor = true;
+			this->button3->Visible = false;
+			this->button3->Click += gcnew System::EventHandler(this, &MonitorForm::button3_Click_1);
+			// 
+			// button2
+			// 
+			this->button2->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->button2->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->button2->ForeColor = System::Drawing::Color::White;
+			this->button2->Location = System::Drawing::Point(343, 488);
+			this->button2->Name = L"button2";
+			this->button2->Size = System::Drawing::Size(75, 23);
+			this->button2->TabIndex = 20;
+			this->button2->Text = L"圆形";
+			this->button2->UseVisualStyleBackColor = true;
+			this->button2->Visible = false;
+			this->button2->Click += gcnew System::EventHandler(this, &MonitorForm::button2_Click);
+			// 
+			// button1
+			// 
+			this->button1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->button1->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->button1->ForeColor = System::Drawing::Color::White;
+			this->button1->Location = System::Drawing::Point(262, 487);
+			this->button1->Name = L"button1";
+			this->button1->Size = System::Drawing::Size(75, 23);
+			this->button1->TabIndex = 20;
+			this->button1->Text = L"矩形";
+			this->button1->UseVisualStyleBackColor = true;
+			this->button1->Visible = false;
+			this->button1->Click += gcnew System::EventHandler(this, &MonitorForm::button1_Click);
 			// 
 			// derterNumGroupBox
 			// 
@@ -746,45 +753,6 @@ namespace DetectionMonitor {
 			this->deButton->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::button1_Paint);
 			this->deButton->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::deButton_MouseDown);
 			// 
-			// button1
-			// 
-			this->button1->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->button1->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
-			this->button1->ForeColor = System::Drawing::Color::White;
-			this->button1->Location = System::Drawing::Point(262, 487);
-			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(75, 23);
-			this->button1->TabIndex = 20;
-			this->button1->Text = L"矩形";
-			this->button1->UseVisualStyleBackColor = true;
-			this->button1->Visible = false;
-			// 
-			// button2
-			// 
-			this->button2->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->button2->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
-			this->button2->ForeColor = System::Drawing::Color::White;
-			this->button2->Location = System::Drawing::Point(343, 488);
-			this->button2->Name = L"button2";
-			this->button2->Size = System::Drawing::Size(75, 23);
-			this->button2->TabIndex = 20;
-			this->button2->Text = L"矩形";
-			this->button2->UseVisualStyleBackColor = true;
-			this->button2->Visible = false;
-			// 
-			// button3
-			// 
-			this->button3->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
-			this->button3->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
-			this->button3->ForeColor = System::Drawing::Color::White;
-			this->button3->Location = System::Drawing::Point(424, 490);
-			this->button3->Name = L"button3";
-			this->button3->Size = System::Drawing::Size(75, 23);
-			this->button3->TabIndex = 20;
-			this->button3->Text = L"矩形";
-			this->button3->UseVisualStyleBackColor = true;
-			this->button3->Visible = false;
-			// 
 			// MonitorForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
@@ -932,11 +900,10 @@ namespace DetectionMonitor {
 					//	//画框子
 					//	cvFrame(&frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
 					//}
-					//画出警告区域
+					//画出警告区域(多边形)
 					for each(List<UtilSpace::Point ^> ^region in regions) {
 
 						bool call_110 = false;
-						int count = region->Count;
 						//if(count>2 && region[count]->x == region[2]->x && region[count]->y == region[2]->y){
 						//检测有没有是人的框子踏入了警告区域
 						for each (UtilSpace::Result ^result in results)
@@ -964,7 +931,33 @@ namespace DetectionMonitor {
 						}
 
 					}
-					if (drawing && !newDraw)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
+
+					//画出警告区域(矩形)
+					for each(UtilSpace::Rectangle ^rectangle in rectangles) {
+
+						bool call_110 = false;
+						//检测有没有是人的框子踏入了警告区域
+						for each (UtilSpace::Result ^result in results)
+						{
+							if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(rectangle, result))//如果有人的区域与警告区域重叠，跳出循环，警告
+							{
+								call_110 = true;
+								break;
+							}
+						}
+						if (!call_110) {
+							cvRectangle(frameToShow, cvPoint(rectangle->x1, rectangle->y1), cvPoint(rectangle->x2, rectangle->y2), CV_RGB(255, 255, 255), 1);
+						}
+
+						else
+						{
+							cvRectangle(frameToShow, cvPoint(rectangle->x1, rectangle->y1), cvPoint(rectangle->x2, rectangle->y2), CV_RGB(255, 0, 0), 1);
+							labelWarning->Text = "警告！！！";
+						}
+
+					}
+
+					if (drawing && !newDraw && regionType == 3)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
 					{
 						cvCircle(frameToShow, cvPoint(region[2]->x, region[2]->y), 10, CV_RGB(255, 255, 255), 1, CV_AA, 0);
 						int i = 3;
@@ -1031,94 +1024,97 @@ namespace DetectionMonitor {
 	}
 	private: System::Void frameShowBox_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
 		if (drawing) {
-			int x = frameWidth * e->X / frameShowBox->Width;
-			int y = frameHeight * e->Y / frameShowBox->Height;
-			region->Add(gcnew UtilSpace::Point(x, y));
-
-			if (newDraw) {
-				//先加入两个点记录该多边形的外切矩形的x1,y1,x2,y2
-				region->Add(gcnew UtilSpace::Point(x, y));
-				region->Add(gcnew UtilSpace::Point(x, y));
+			if (regionType == 1) {
+				startPoint = gcnew System::Drawing::Point(e->X, e->Y);
 				endPoint = nullptr;
-				newDraw = false;
+				drawing = true;
 			}
-			else {
-				//先判断新增加的线段有没有和之前的线段相交
-				bool isIntersect = false;
-				for (int i = 3; i < region->Count - 2; i++)//不判断最新边和它的上一条边是否重合
-					if (UtilSpace::Rectangle::isIntersect(region[i], region[i - 1], region[region->Count - 2], region[region->Count - 1]))
-						isIntersect = true;
+			else if (regionType == 3) {
+				int x = frameWidth * e->X / frameShowBox->Width;
+				int y = frameHeight * e->Y / frameShowBox->Height;
+				region->Add(gcnew UtilSpace::Point(x, y));
 
-				if (isIntersect) {
-					region = nullptr;
-					drawing = false;
-					MessageBox::Show("新建多边形边不允许相交！", "警告", MessageBoxButtons::OK);
+				if (newDraw) {
+					//先加入两个点记录该多边形的外切矩形的x1,y1,x2,y2
+					region->Add(gcnew UtilSpace::Point(x, y));
+					region->Add(gcnew UtilSpace::Point(x, y));
+					endPoint = nullptr;
+					newDraw = false;
 				}
 				else {
-					if (abs(x - region[2]->x <= 10 && abs(y - region[2]->y <= 10))) {
-						drawing = false;
-						region[region->Count - 1]->x = region[2]->x;
-						region[region->Count - 1]->y = region[2]->y;
-						regions->Add(region);
+					//先判断新增加的线段有没有和之前的线段相交
+					bool isIntersect = false;
+					for (int i = 3; i < region->Count - 2; i++)//不判断最新边和它的上一条边是否重合
+						if (UtilSpace::Rectangle::isIntersect(region[i], region[i - 1], region[region->Count - 2], region[region->Count - 1]))
+							isIntersect = true;
+
+					if (isIntersect) {
 						region = nullptr;
+						drawing = false;
+						MessageBox::Show("新建多边形边不允许相交！", "警告", MessageBoxButtons::OK);
 					}
 					else {
-						//更改外切矩形的参数
-						if (region[0]->x > x)
-							region[0]->x = x;
-						if (region[0]->y > y)
-							region[0]->y = y;
-						if (region[1]->x < x)
-							region[1]->x = x;
-						if (region[1]->y < y)
-							region[1]->y = y;
+						if (abs(x - region[2]->x <= 10 && abs(y - region[2]->y <= 10))) {
+							drawing = false;
+							region[region->Count - 1]->x = region[2]->x;
+							region[region->Count - 1]->y = region[2]->y;
+							regions->Add(region);
+							region = nullptr;
+						}
+						else {
+							//更改外切矩形的参数
+							if (region[0]->x > x)
+								region[0]->x = x;
+							if (region[0]->y > y)
+								region[0]->y = y;
+							if (region[1]->x < x)
+								region[1]->x = x;
+							if (region[1]->y < y)
+								region[1]->y = y;
+						}
 					}
 				}
 			}
 		}
 	}
 	private: System::Void frameShowBox_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		//if (newDraw) {
-		//	drawing = false;
-		//	endPoint = gcnew System::Drawing::Point(e->X, e->Y);
-		//	newDraw = false;
-		//	//计算当前picturebox上的点的位置
-		//	int topleftX = startPoint->X < endPoint->X ? startPoint->X : endPoint->X;
-		//	int topleftY = startPoint->Y < endPoint->Y ? startPoint->Y : endPoint->Y;
-		//	int bootomRightX = startPoint->X > endPoint->X ? startPoint->X : endPoint->X;
-		//	int bootomRightY = startPoint->Y > endPoint->Y ? startPoint->Y : endPoint->Y;
-		//	//映射回frame
-		//	int x1 = frameWidth * topleftX / frameShowBox->Width;
-		//	int y1 = frameHeight * topleftY / frameShowBox->Height;
-		//	int x2 = frameWidth * bootomRightX / frameShowBox->Width;
-		//	int y2 = frameHeight * bootomRightY / frameShowBox->Height;
+		if (newDraw && regionType==1) {
+			drawing = false;
+			endPoint = gcnew System::Drawing::Point(e->X, e->Y);
+			newDraw = false;
+			//计算当前picturebox上的点的位置
+			int topleftX = startPoint->X < endPoint->X ? startPoint->X : endPoint->X;
+			int topleftY = startPoint->Y < endPoint->Y ? startPoint->Y : endPoint->Y;
+			int bootomRightX = startPoint->X > endPoint->X ? startPoint->X : endPoint->X;
+			int bootomRightY = startPoint->Y > endPoint->Y ? startPoint->Y : endPoint->Y;
+			//映射回frame
+			int x1 = frameWidth * topleftX / frameShowBox->Width;
+			int y1 = frameHeight * topleftY / frameShowBox->Height;
+			int x2 = frameWidth * bootomRightX / frameShowBox->Width;
+			int y2 = frameHeight * bootomRightY / frameShowBox->Height;
 
-		//	regions->Add(gcnew UtilSpace::Rectangle(x1, y1, x2, y2));
-		//}
+			rectangles->Add(gcnew UtilSpace::Rectangle(x1, y1, x2, y2));
+		}
 	}
 	private: System::Void frameShowBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		//Graphics ^g = frameShowBox->CreateGraphics();
-		//if (e->Button == System::Windows::Forms::MouseButtons::Left) {
-		//	if (drawing)
-		//	{
-		//		g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;//消除锯齿  
-		//		frameShowBox->Refresh();
-		//		//找出矩形的最左上角
-		//		int leftTopX = startPoint->X < e->X ? startPoint->X : e->X;
-		//		int leftTopY = startPoint->Y < e->Y ? startPoint->Y : e->Y;
+		if (drawing && regionType == 1) {
+			Graphics ^g = frameShowBox->CreateGraphics();
+			if (e->Button == System::Windows::Forms::MouseButtons::Left) {
+				g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;//消除锯齿  
+				frameShowBox->Refresh();
+				//找出矩形的最左上角
+				int leftTopX = startPoint->X < e->X ? startPoint->X : e->X;
+				int leftTopY = startPoint->Y < e->Y ? startPoint->Y : e->Y;
 
-		//		g->DrawRectangle(gcnew Pen(Color::Blue, 2), leftTopX, leftTopY, Math::Abs(e->X - startPoint->X), Math::Abs(e->Y - startPoint->Y));
-		//	}
-		//}
+				g->DrawRectangle(gcnew Pen(Color::Blue, 2), leftTopX, leftTopY, Math::Abs(e->X - startPoint->X), Math::Abs(e->Y - startPoint->Y));
+			}
+		}
 	}
 	private: List<UtilSpace::Point ^> ^region;
 	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e){
 		button1->Visible = true;
 		button2->Visible = true;
 		button3->Visible = true;
-		newDraw = true;//记录是不是多边形的第一个点
-		drawing = true;//记录是不是正在画图
-		region = gcnew List<UtilSpace::Point ^>();
 	}
 	private: System::Void buttonClean_Click(System::Object^  sender, System::EventArgs^  e) {
 		regions->Clear();
@@ -1191,6 +1187,7 @@ private: System::Void stopButton_Click(System::Object^  sender, System::EventArg
 	//frameShowBox->Enabled = false;
 	drawing = false;
 	newDraw = false;
+	regionType = 0;
 	results->Clear();
 	regions->Clear();
 	ReleaseMutex(frameMutex);
@@ -1307,6 +1304,34 @@ private: System::Void deButton_MouseDown(System::Object^  sender, System::Window
 		mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		deButton->Visible = false;
 	}
+}
+//矩形
+private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
+	//button1的单击事件
+	button1->Visible = false;
+	button2->Visible = false;
+	button3->Visible = false;
+	regionType = 1;
+	newDraw = true;//记录是不是多边形的第一个点
+	drawing = true;//记录是不是正在画图
+}
+private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
+	//button2的单击事件
+	button1->Visible = false;
+	button2->Visible = false;
+	button3->Visible = false;
+	regionType = 2;
+}
+//多边形
+private: System::Void button3_Click_1(System::Object^  sender, System::EventArgs^  e) {
+	//button3的单击事件
+	button1->Visible = false;
+	button2->Visible = false;
+	button3->Visible = false;
+	regionType = 3;
+	newDraw = true;//记录是不是多边形的第一个点
+	drawing = true;//记录是不是正在画图
+	region = gcnew List<UtilSpace::Point ^>();
 }
 };
 }
