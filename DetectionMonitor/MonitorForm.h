@@ -18,7 +18,6 @@
 #pragma comment (lib, "opencv_ts2411d.lib")
 #pragma comment (lib, "opencv_video2411d.lib")
 #pragma comment (lib, "opencv_videostab2411d.lib")
-
 #pragma comment (lib, "opencv_calib3d2411.lib")
 #pragma comment (lib, "opencv_contrib2411.lib")
 #pragma comment (lib, "opencv_core2411.lib")
@@ -38,7 +37,6 @@
 #pragma comment (lib, "opencv_ts2411.lib")
 #pragma comment (lib, "opencv_video2411.lib")
 #pragma comment (lib, "opencv_videostab2411.lib")
-#include <math.h>
 #include <list>   
 #include <numeric> 
 #include "opencv/cv.h"
@@ -65,6 +63,7 @@ int now_frame_no = 0;
 int fame_continue = 6;
 std::queue<IplImage *> imageQueue;
 FeatureTracker tracker;// = new FeatureTracker();
+
 struct MyRGB
 {
 	int R;
@@ -73,6 +72,7 @@ struct MyRGB
 };
 std::map<std::string, MyRGB> colorMap;
 std::map<std::string, MyRGB>::iterator it;
+
 namespace DetectionMonitor {
 
 	using namespace System::ComponentModel;
@@ -96,9 +96,7 @@ namespace DetectionMonitor {
 			List<Thread ^> ^threadList = gcnew List<Thread ^>();//将所有线程放入线程池中
 			System::String ^result = "";// "12-12-15-115-0.98-person,12-12-15-115-0.98-person,";
 
-			List<UtilSpace::Rectangle ^> ^rectangles;
-			List<List<UtilSpace::Point ^> ^> ^regions;
-			int regionType = 0;//1代表矩形，2椭圆，3多边形
+			List<UtilSpace::Region ^> ^regions = gcnew List<UtilSpace::Region ^>();
 
 			HANDLE frameMutex = CreateMutex(NULL, FALSE, NULL);//用于frame多线程读写时的互斥变量
 			HANDLE resultMutex = CreateMutex(NULL, FALSE, NULL);
@@ -107,9 +105,6 @@ namespace DetectionMonitor {
 			int frameWidth = 640;
 			int frameHeight = 480;
 			//警告区域相关的变量
-	private:System::Drawing::Point ^startPoint = nullptr, ^endPoint = nullptr;//鼠标下落点和离开店
-			bool drawing = false;
-			bool newDraw = false;
 	private: System::Windows::Forms::Timer^  frameTimer;
 	private: System::Windows::Forms::Timer^  beepTimer;
 	private: System::Windows::Forms::Timer^  calculateTImer;
@@ -169,8 +164,6 @@ namespace DetectionMonitor {
 			colorMap["sofa"] = { 138, 43, 226 };
 			colorMap["train"] = { 48, 128, 20 };
 			colorMap[""] = { 0, 0, 0 };
-			regions = gcnew List<List<UtilSpace::Point ^> ^>();
-			rectangles = gcnew List<UtilSpace::Rectangle ^>();
 
 			InitializeComponent();
 			//
@@ -783,39 +776,39 @@ namespace DetectionMonitor {
 		}
 #pragma endregion
 
-	private: System::Void startBtn_Click(System::Object^  sender, System::EventArgs^  e) {
-			frameTimer->Stop();
-			calculateTImer->Stop();
-			for each(Thread ^t in threadList)
-			{
-				t->Join();
-			}
-			cvReleaseCapture(&capture);
-			now_frame_no = 0;
-			startPoint = nullptr;
-			endPoint = nullptr;
-			//frameShowBox->Enabled = false;
-			drawing = false;
-			newDraw = false;
-			results->Clear();
-			regions->Clear();
-			ReleaseMutex(frameMutex);
-			ReleaseMutex(resultMutex);
-			ReleaseMutex(frameTimerHandle);
-			ReleaseMutex(socketHandle);
-			tracker.finilise();
-			int frameWidth = 640;
-			int frameHeight = 480;
-			/*while (!imageQueue.empty()) {
-			imageQueue.pop();
-			}*/
-	}
-			 //视频滚动条的函数
+	//private: System::Void startBtn_Click(System::Object^  sender, System::EventArgs^  e) {
+	//		frameTimer->Stop();
+	//		calculateTImer->Stop();
+	//		for each(Thread ^t in threadList)
+	//		{
+	//			t->Join();
+	//		}
+	//		cvReleaseCapture(&capture);
+	//		now_frame_no = 0;
+	//		startPoint = nullptr;
+	//		endPoint = nullptr;
+	//		//frameShowBox->Enabled = false;
+	//		drawing = false;
+	//		newDraw = false;
+	//		results->Clear();
+	//		regions->Clear();
+	//		ReleaseMutex(frameMutex);
+	//		ReleaseMutex(resultMutex);
+	//		ReleaseMutex(frameTimerHandle);
+	//		ReleaseMutex(socketHandle);
+	//		tracker.finilise();
+	//		int frameWidth = 640;
+	//		int frameHeight = 480;
+	//		/*while (!imageQueue.empty()) {
+	//		imageQueue.pop();
+	//		}*/
+	//}
+	//视频滚动条的函数
 	private: System::Void videoBar_Scroll(System::Object^  sender, System::EventArgs^  e) {
 		cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, videoBar->Value);
 	}
 
-			 //写字的
+	//写字的
 	private: System::Void cvText(IplImage* img, const char* cls, int x, int y, const char* score)
 	{
 		CvFont font;
@@ -833,13 +826,15 @@ namespace DetectionMonitor {
 		strcat(temp, score);
 		cvPutText(img, temp, textPos, &font, textColor);
 	}
-			 //画框的
+
+	//画框的
 	private: System::Void cvFrame(IplImage* img, int x1, int y1, int x2, int y2, const char* cls)
 	{
 		it = colorMap.find(cls);
 		cvRectangle(img, cvPoint(x1, y1), cvPoint(x2, y2), CV_RGB((*it).second.R, (*it).second.G, (*it).second.B), 2);
 	}
-			 //循环画帧
+
+	//循环画帧
 	private: System::Void frameTimer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		try
 		{
@@ -875,99 +870,48 @@ namespace DetectionMonitor {
 					imageQueue.pop();
 					WaitForSingleObject(resultMutex, INFINITE);
 					//画出检测结果
-					//vector<cv::Point2f> offset(tracker.process(Mat(frame), results));
-					for (int i = 0; i < results->Count; i++)
+					for each (UtilSpace::Result ^result in results)
 					{
-						/*if (i < offset.size()) {
-							results[i]->x1 = results[i]->x1 + offset[i].x;
-							results[i]->x2 = results[i]->x2 + offset[i].x;
-							results[i]->y1 = results[i]->y1 + offset[i].y;
-							results[i]->y2 = results[i]->y2 + offset[i].y;
-						}*/
-						char *cls = StringToCharArray(results[i]->cls);
-						char *score = StringToCharArray(results[i]->score);
+						char *cls = StringToCharArray(result->cls);
+						char *score = StringToCharArray(result->score);
 						//写字
-						cvText(frameToShow, cls, results[i]->x1, results[i]->y1, score);
+						cvText(frameToShow, cls, result->x1, result->y1, score);
 						//画框子
-						cvFrame(frameToShow, results[i]->x1, results[i]->y1, results[i]->x2, results[i]->y2, cls);
+						cvFrame(frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
 					}
-					//for each (UtilSpace::Result ^result in results)
-					//{
-					//	char *cls = StringToCharArray(result->cls);
-					//	char *score = StringToCharArray(result->score);
-					//	//写字
-					//	cvText(&frameToShow, cls, result->x1, result->y1, score);
-					//	//画框子
-					//	cvFrame(&frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
-					//}
 					//画出警告区域(多边形)
-					for each(List<UtilSpace::Point ^> ^region in regions) {
+					for each(UtilSpace::Region  ^region in regions) {
 
 						bool call_110 = false;
 						//if(count>2 && region[count]->x == region[2]->x && region[count]->y == region[2]->y){
 						//检测有没有是人的框子踏入了警告区域
 						for each (UtilSpace::Result ^result in results)
 						{
-							if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoAreasOverlapped(region, result))//如果有人的区域与警告区域重叠，跳出循环，警告
+							if (result->cls->Equals("person") && region->areTwoAreasOverlapped(result))//如果有人的区域与警告区域重叠，跳出循环，警告
 							{
 								call_110 = true;
 								break;
 							}
 						}
-						//}
 						if (!call_110) {
-							int i = 3;
-							for (; i < region->Count; i++)//画之前的线段
-								cvLine(frameToShow, cvPoint(region[i - 1]->x, region[i - 1]->y), cvPoint(region[i]->x, region[i]->y), CV_RGB(255, 255, 255), 1, CV_AA, 0);
+							region->draw(frameToShow, 255, 255, 255);
 						}
-
 						else
 						{
-							int i = 3;
-							for (; i < region->Count; i++)//画之前的线段
-								cvLine(frameToShow, cvPoint(region[i - 1]->x, region[i - 1]->y), cvPoint(region[i]->x, region[i]->y), CV_RGB(255, 0, 0), 1, CV_AA, 0);
+							region->draw(frameToShow, 255, 0, 0);
 							labelWarning->Text = "警告！！！";
 							//beepTime->Start();
 						}
 
 					}
 
-					//画出警告区域(矩形)
-					for each(UtilSpace::Rectangle ^rectangle in rectangles) {
-
-						bool call_110 = false;
-						//检测有没有是人的框子踏入了警告区域
-						for each (UtilSpace::Result ^result in results)
-						{
-							if (result->cls->Equals("person") && UtilSpace::Rectangle::areTwoRectsOverlapped(rectangle, result))//如果有人的区域与警告区域重叠，跳出循环，警告
-							{
-								call_110 = true;
-								break;
-							}
-						}
-						if (!call_110) {
-							cvRectangle(frameToShow, cvPoint(rectangle->x1, rectangle->y1), cvPoint(rectangle->x2, rectangle->y2), CV_RGB(255, 255, 255), 1);
-						}
-
-						else
-						{
-							cvRectangle(frameToShow, cvPoint(rectangle->x1, rectangle->y1), cvPoint(rectangle->x2, rectangle->y2), CV_RGB(255, 0, 0), 1);
-							labelWarning->Text = "警告！！！";
-						}
-
-					}
-
-					if (drawing && !newDraw && regionType == 3)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
+					if (region!=nullptr && region->drawing && !region->newDraw)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
 					{
-						cvCircle(frameToShow, cvPoint(region[2]->x, region[2]->y), 10, CV_RGB(255, 255, 255), 1, CV_AA, 0);
-						int i = 3;
-						for (; i < region->Count; i++)//画之前的线段
-							cvLine(frameToShow, cvPoint(region[i - 1]->x, region[i - 1]->y), cvPoint(region[i]->x, region[i]->y), CV_RGB(255, 255, 255), 1, CV_AA, 0);
+						region->drawIncomplete(frameToShow);
 					}
 					ReleaseMutex(resultMutex);
 					frameShowBox->Image = gcnew System::Drawing::Bitmap(frameToShow->width, frameToShow->height, frameToShow->widthStep, System::Drawing::Imaging::PixelFormat::Format24bppRgb, (System::IntPtr) frameToShow->imageData);
 					WaitForSingleObject(frameTimerHandle, INFINITE);
-					now_frame_no++;
 					ReleaseMutex(frameTimerHandle);
 				}
 			}
@@ -975,22 +919,16 @@ namespace DetectionMonitor {
 			{
 				ReleaseMutex(frameMutex);
 			}
+			now_frame_no++;
 		}
 		catch (System::Exception ^g) {
 		}
 	}
-			 //int save = 1;
-			 //发送需要被检测的帧到服务器并返回结果
+
+	//发送需要被检测的帧到服务器并返回结果
 	private:void SendFrame() {
 		WaitForSingleObject(frameMutex, INFINITE);
 		client->connect();
-		//测试所用
-		//Bitmap ^temp = gcnew System::Drawing::Bitmap(frameSend->width, frameSend->height, frameSend->widthStep, System::Drawing::Imaging::PixelFormat::Format24bppRgb, (System::IntPtr) frameSend->imageData);
-		//temp->Save(save + ".jpg", System::Drawing::Imaging::ImageFormat::Jpeg);
-		//save++;
-		//if (save == 30)
-		//	save = 1;
-		//测试end
 		client->sendImg(frameSend);
 		result = client->receive();
 		client->closeSocket();
@@ -1017,116 +955,72 @@ namespace DetectionMonitor {
 		fpsCount++;
 		ReleaseMutex(resultMutex);
 	}
+
 	private: System::Void calculateTImer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		timeCount++;
 		frameRateLabel->Text = "视频帧率: " + (double)((int)(((double)now_frame_no / timeCount) * 100)) / 100 + "fps";
 		receiveRateLabel->Text = "平均接收帧率: " + (double)((int)(((double)fpsCount / timeCount) * 100)) / 100 + "fps";
 	}
+
 	private: System::Void frameShowBox_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		if (drawing) {
-			if (regionType == 1) {
-				startPoint = gcnew System::Drawing::Point(e->X, e->Y);
-				endPoint = nullptr;
-				drawing = true;
+		if (region != nullptr) {
+			int x = frameWidth * e->X / frameShowBox->Width;
+			int y = frameHeight * e->Y / frameShowBox->Height;
+			int flag = region->mouseDown(x, y);//-1相交导致结束 0正在画 1画好
+			if (flag == 1) {
+				regions->Add(region);
+				region = nullptr;
 			}
-			else if (regionType == 3) {
-				int x = frameWidth * e->X / frameShowBox->Width;
-				int y = frameHeight * e->Y / frameShowBox->Height;
-				region->Add(gcnew UtilSpace::Point(x, y));
-
-				if (newDraw) {
-					//先加入两个点记录该多边形的外切矩形的x1,y1,x2,y2
-					region->Add(gcnew UtilSpace::Point(x, y));
-					region->Add(gcnew UtilSpace::Point(x, y));
-					endPoint = nullptr;
-					newDraw = false;
-				}
-				else {
-					//先判断新增加的线段有没有和之前的线段相交
-					bool isIntersect = false;
-					for (int i = 3; i < region->Count - 2; i++)//不判断最新边和它的上一条边是否重合
-						if (UtilSpace::Rectangle::isIntersect(region[i], region[i - 1], region[region->Count - 2], region[region->Count - 1]))
-							isIntersect = true;
-
-					if (isIntersect) {
-						region = nullptr;
-						drawing = false;
-						MessageBox::Show("新建多边形边不允许相交！", "警告", MessageBoxButtons::OK);
-					}
-					else {
-						if (abs(x - region[2]->x <= 10 && abs(y - region[2]->y <= 10))) {
-							drawing = false;
-							region[region->Count - 1]->x = region[2]->x;
-							region[region->Count - 1]->y = region[2]->y;
-							regions->Add(region);
-							region = nullptr;
-						}
-						else {
-							//更改外切矩形的参数
-							if (region[0]->x > x)
-								region[0]->x = x;
-							if (region[0]->y > y)
-								region[0]->y = y;
-							if (region[1]->x < x)
-								region[1]->x = x;
-							if (region[1]->y < y)
-								region[1]->y = y;
-						}
-					}
-				}
+			else if (flag == -1) {
+				region = nullptr;
 			}
 		}
 	}
+
 	private: System::Void frameShowBox_MouseUp(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		if (newDraw && regionType==1) {
-			drawing = false;
-			endPoint = gcnew System::Drawing::Point(e->X, e->Y);
-			newDraw = false;
-			//计算当前picturebox上的点的位置
-			int topleftX = startPoint->X < endPoint->X ? startPoint->X : endPoint->X;
-			int topleftY = startPoint->Y < endPoint->Y ? startPoint->Y : endPoint->Y;
-			int bootomRightX = startPoint->X > endPoint->X ? startPoint->X : endPoint->X;
-			int bootomRightY = startPoint->Y > endPoint->Y ? startPoint->Y : endPoint->Y;
-			//映射回frame
-			int x1 = frameWidth * topleftX / frameShowBox->Width;
-			int y1 = frameHeight * topleftY / frameShowBox->Height;
-			int x2 = frameWidth * bootomRightX / frameShowBox->Width;
-			int y2 = frameHeight * bootomRightY / frameShowBox->Height;
-
-			rectangles->Add(gcnew UtilSpace::Rectangle(x1, y1, x2, y2));
-		}
-	}
-	private: System::Void frameShowBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-		if (drawing && regionType == 1) {
-			Graphics ^g = frameShowBox->CreateGraphics();
-			if (e->Button == System::Windows::Forms::MouseButtons::Left) {
-				g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;//消除锯齿  
-				frameShowBox->Refresh();
-				//找出矩形的最左上角
-				int leftTopX = startPoint->X < e->X ? startPoint->X : e->X;
-				int leftTopY = startPoint->Y < e->Y ? startPoint->Y : e->Y;
-
-				g->DrawRectangle(gcnew Pen(Color::Blue, 2), leftTopX, leftTopY, Math::Abs(e->X - startPoint->X), Math::Abs(e->Y - startPoint->Y));
+		if (region != nullptr) {
+			int x = frameWidth * e->X / frameShowBox->Width;
+			int y = frameHeight * e->Y / frameShowBox->Height;
+			int flag = region->mouseUp(x, y);//-1相交导致结束 0正在画 1画好
+			if (flag == 1) {
+				regions->Add(region);
+				region = nullptr;
+			}
+			else if (flag == -1) {
+				region = nullptr;
 			}
 		}
 	}
-	private: List<UtilSpace::Point ^> ^region;
+
+	private: System::Void frameShowBox_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		if (region != nullptr) {
+			int x = frameWidth * e->X / frameShowBox->Width;
+			int y = frameHeight * e->Y / frameShowBox->Height;
+			int flag = region->mouseMove(frameShowBox, e, frameWidth, frameHeight);//-1相交导致结束 0正在画 1画好
+		}
+	}
+
+	private: UtilSpace::Region ^region;
+
 	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e){
 		button1->Visible = true;
 		button2->Visible = true;
 		button3->Visible = true;
 	}
+
 	private: System::Void buttonClean_Click(System::Object^  sender, System::EventArgs^  e) {
 		regions->Clear();
 		region = nullptr;
 	}
-			 //警告区域相关的函数结束
+
+	//警告区域相关的函数结束
 	private: System::Void beepTimer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		System::Media::SoundPlayer ^sp = gcnew SoundPlayer();
 		sp->SoundLocation = "BLEEP1_S.WAV";
 		sp->Play();
 		beepTime->Stop();
 	}
+
 	private: System::Void captureButton_Click(System::Object^  sender, System::EventArgs^  e) {
 		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		capture = cvCaptureFromCAM(0);
@@ -1145,193 +1039,184 @@ namespace DetectionMonitor {
 		buttonPaint->Enabled = true;
 		buttonClean->Enabled = true;
 	}
-private: System::Void videoButton_Click(System::Object^  sender, System::EventArgs^  e) {
-	videoFileDialog->Filter = "AVI files (*.avi)|*.txt|All files (*.*)|*.*";
-	videoFileDialog->FilterIndex = 2;
-	videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-	videoFileDialog->RestoreDirectory = true;
-	videoFileDialog->FileName = "";
-	videoBar->Visible = true;
-	videoBar->Value = 0;
-	if (videoFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK)
-	{
-		char *fileName = (char*)Marshal::StringToHGlobalAnsi(videoFileDialog->FileName).ToPointer();
-		capture = cvCaptureFromFile(fileName);
-		fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
-		fame_continue = 6;
-		videoBar->Minimum = 0;
-		timeCount = 0;
-		fpsCount = 0;
-		calculateTImer->Start();
-		//frameRateLabel->Text = "视频帧率: " + double(int(fps * 100)) / 100 + "fps";
-		videoBar->Maximum = (int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT);
-		frameTimer->Start();
-		buttonPaint->Enabled = false;
-		buttonClean->Enabled = false;
+
+	private: System::Void videoButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		videoFileDialog->Filter = "AVI files (*.avi)|*.txt|All files (*.*)|*.*";
+		videoFileDialog->FilterIndex = 2;
+		videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+		videoFileDialog->RestoreDirectory = true;
+		videoFileDialog->FileName = "";
+		videoBar->Visible = true;
+		videoBar->Value = 0;
+		if (videoFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+		{
+			char *fileName = (char*)Marshal::StringToHGlobalAnsi(videoFileDialog->FileName).ToPointer();
+			capture = cvCaptureFromFile(fileName);
+			fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
+			fame_continue = 6;
+			videoBar->Minimum = 0;
+			timeCount = 0;
+			fpsCount = 0;
+			calculateTImer->Start();
+			//frameRateLabel->Text = "视频帧率: " + double(int(fps * 100)) / 100 + "fps";
+			videoBar->Maximum = (int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT);
+			frameTimer->Start();
+			buttonPaint->Enabled = false;
+			buttonClean->Enabled = false;
+		}
 	}
 
-}
-private: System::Void stopButton_Click(System::Object^  sender, System::EventArgs^  e) {
-	frameTimer->Stop();
-	calculateTImer->Stop();
-	captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
-	videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
-	for each(Thread ^t in threadList)
-	{
-		t->Join();
+	private: System::Void stopButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		frameTimer->Stop();
+		calculateTImer->Stop();
+		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+		videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+		for each(Thread ^t in threadList)
+		{
+			t->Join();
+		}
+		cvReleaseCapture(&capture);
+		now_frame_no = 0;
+		//frameShowBox->Enabled = false;
+		region = nullptr;
+		results->Clear();
+		regions->Clear();
+		ReleaseMutex(frameMutex);
+		ReleaseMutex(resultMutex);
+		ReleaseMutex(frameTimerHandle);
+		ReleaseMutex(socketHandle);
+		tracker.finilise();
+		int frameWidth = 640;
+		int frameHeight = 480;
+		/*while (!imageQueue.empty()) {
+		imageQueue.pop();
+		}*/
 	}
-	cvReleaseCapture(&capture);
-	now_frame_no = 0;
-	startPoint = nullptr;
-	endPoint = nullptr;
-	//frameShowBox->Enabled = false;
-	drawing = false;
-	newDraw = false;
-	regionType = 0;
-	results->Clear();
-	regions->Clear();
-	ReleaseMutex(frameMutex);
-	ReleaseMutex(resultMutex);
-	ReleaseMutex(frameTimerHandle);
-	ReleaseMutex(socketHandle);
-	tracker.finilise();
-	int frameWidth = 640;
-	int frameHeight = 480;
-	/*while (!imageQueue.empty()) {
-	imageQueue.pop();
-	}*/
-}
 
-private: System::Void stopButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
-	stopLabel->Visible = false;
-}
-private: System::Void stopButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	stopLabel->Visible = true;
-}
-private: System::Void shelterButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	shelterLabel->Visible = true;
-}
-private: System::Void shelterButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
-	shelterLabel->Visible = false;
-}
-private: System::Void buttonPaint_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	paintLabel->Visible = true;
-}
-private: System::Void buttonPaint_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
-	paintLabel->Visible = false;
-}
-private: System::Void buttonClean_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	cleanLabel->Visible = true;
-}
-private: System::Void buttonClean_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
-	cleanLabel->Visible = false;
-}
-private: System::Void startDeButton_Click(System::Object^  sender, System::EventArgs^  e) {
-	tabControl1->SelectedIndex = 1;
-	deButton->Visible = true;
-	mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
-	deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-}
-private: System::Void tabControl1_DoubleClick(System::Object^  sender, System::EventArgs^  e) {
-	tabControl1->SelectedIndex = 0;
-	deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
-	mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-	deButton->Visible = false;
-}
-private: System::Void detectionSourceGroup_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-	e->Graphics->Clear(detectionSourceGroup->BackColor);
-	e->Graphics->DrawString(detectionSourceGroup->Text, detectionSourceGroup->Font, Brushes::White, 10, 1);
-	e->Graphics->DrawLine(Pens::Gray, 1, 7, 8, 7);
-	e->Graphics->DrawLine(Pens::Gray, (int)e->Graphics->MeasureString(detectionSourceGroup->Text, detectionSourceGroup->Font).Width + 8, 7, detectionSourceGroup->Width - 2, 7);
-	e->Graphics->DrawLine(Pens::Gray, 1, 7, 1, detectionSourceGroup->Height - 2);
-	e->Graphics->DrawLine(Pens::Gray, 1, detectionSourceGroup->Height - 2, detectionSourceGroup->Width - 2, detectionSourceGroup->Height - 2);
-	e->Graphics->DrawLine(Pens::Gray, detectionSourceGroup->Width - 2, 7, detectionSourceGroup->Width - 2, detectionSourceGroup->Height - 2);
-}
-private: System::Void derterNumGroupBox_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-	e->Graphics->Clear(derterNumGroupBox->BackColor);
-	e->Graphics->DrawString(derterNumGroupBox->Text, derterNumGroupBox->Font, Brushes::White, 10, 1);
-	e->Graphics->DrawLine(Pens::Gray, 1, 7, 8, 7);
-	e->Graphics->DrawLine(Pens::Gray, (int)e->Graphics->MeasureString(derterNumGroupBox->Text, derterNumGroupBox->Font).Width + 8, 7, derterNumGroupBox->Width - 2, 7);
-	e->Graphics->DrawLine(Pens::Gray, 1, 7, 1, derterNumGroupBox->Height - 2);
-	e->Graphics->DrawLine(Pens::Gray, 1, derterNumGroupBox->Height - 2, derterNumGroupBox->Width - 2, derterNumGroupBox->Height - 2);
-	e->Graphics->DrawLine(Pens::Gray, derterNumGroupBox->Width - 2, 7, derterNumGroupBox->Width - 2, derterNumGroupBox->Height - 2);
-}
-private: System::Void captureButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-}
-private: System::Void captureButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
-	captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
-}
-private: System::Void videoButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-}
-private: System::Void videoButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
-	videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
-}
-private: System::Void button3_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-
-}
-private: System::Void button3_Click(System::Object^  sender, System::EventArgs^  e) {
-	tabControl1->SelectedIndex = 0;
-}
-private: System::Void groupBox1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-	e->Graphics->Clear(groupBox1->BackColor);
-	e->Graphics->DrawString(groupBox1->Text, groupBox1->Font, Brushes::White, 10, 1);
-	e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2),1, 7, 8, 7);
-	e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), (int)e->Graphics->MeasureString(groupBox1->Text, groupBox1->Font).Width + 8, 7, groupBox1->Width - 2, 7);
-	//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 0, 7, 1, groupBox1->Height - 2);
-	//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 0, groupBox1->Height - 2, groupBox1->Width - 2, groupBox1->Height - 2);
-	//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), groupBox1->Width, 7, groupBox1->Width , groupBox1->Height );
-}
-private: System::Void button1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-}
-private: System::Void mainButton_Click(System::Object^  sender, System::EventArgs^  e) {
-	tabControl1->SelectedIndex = 0;
-	mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-	deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
-}
-private: System::Void deButton_Click(System::Object^  sender, System::EventArgs^  e) {
-	deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
-	mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
-	tabControl1->SelectedIndex = 1;
-}
-
-private: System::Void deButton_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
-	if (e->Button == System::Windows::Forms::MouseButtons::Right)
-	{
+	private: System::Void stopButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+		stopLabel->Visible = false;
+	}
+	private: System::Void stopButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		stopLabel->Visible = true;
+	}
+	private: System::Void shelterButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		shelterLabel->Visible = true;
+	}
+	private: System::Void shelterButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+		shelterLabel->Visible = false;
+	}
+	private: System::Void buttonPaint_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		paintLabel->Visible = true;
+	}
+	private: System::Void buttonPaint_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+		paintLabel->Visible = false;
+	}
+	private: System::Void buttonClean_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		cleanLabel->Visible = true;
+	}
+	private: System::Void buttonClean_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+		cleanLabel->Visible = false;
+	}
+	private: System::Void startDeButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		tabControl1->SelectedIndex = 1;
+		deButton->Visible = true;
+		mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
+		deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+	}
+	private: System::Void tabControl1_DoubleClick(System::Object^  sender, System::EventArgs^  e) {
 		tabControl1->SelectedIndex = 0;
 		deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
 		mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		deButton->Visible = false;
 	}
-}
-//矩形
-private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
-	//button1的单击事件
-	button1->Visible = false;
-	button2->Visible = false;
-	button3->Visible = false;
-	regionType = 1;
-	newDraw = true;//记录是不是多边形的第一个点
-	drawing = true;//记录是不是正在画图
-}
-private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
-	//button2的单击事件
-	button1->Visible = false;
-	button2->Visible = false;
-	button3->Visible = false;
-	regionType = 2;
-}
-//多边形
-private: System::Void button3_Click_1(System::Object^  sender, System::EventArgs^  e) {
-	//button3的单击事件
-	button1->Visible = false;
-	button2->Visible = false;
-	button3->Visible = false;
-	regionType = 3;
-	newDraw = true;//记录是不是多边形的第一个点
-	drawing = true;//记录是不是正在画图
-	region = gcnew List<UtilSpace::Point ^>();
-}
-};
+	private: System::Void detectionSourceGroup_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+		e->Graphics->Clear(detectionSourceGroup->BackColor);
+		e->Graphics->DrawString(detectionSourceGroup->Text, detectionSourceGroup->Font, Brushes::White, 10, 1);
+		e->Graphics->DrawLine(Pens::Gray, 1, 7, 8, 7);
+		e->Graphics->DrawLine(Pens::Gray, (int)e->Graphics->MeasureString(detectionSourceGroup->Text, detectionSourceGroup->Font).Width + 8, 7, detectionSourceGroup->Width - 2, 7);
+		e->Graphics->DrawLine(Pens::Gray, 1, 7, 1, detectionSourceGroup->Height - 2);
+		e->Graphics->DrawLine(Pens::Gray, 1, detectionSourceGroup->Height - 2, detectionSourceGroup->Width - 2, detectionSourceGroup->Height - 2);
+		e->Graphics->DrawLine(Pens::Gray, detectionSourceGroup->Width - 2, 7, detectionSourceGroup->Width - 2, detectionSourceGroup->Height - 2);
+	}
+	private: System::Void derterNumGroupBox_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+		e->Graphics->Clear(derterNumGroupBox->BackColor);
+		e->Graphics->DrawString(derterNumGroupBox->Text, derterNumGroupBox->Font, Brushes::White, 10, 1);
+		e->Graphics->DrawLine(Pens::Gray, 1, 7, 8, 7);
+		e->Graphics->DrawLine(Pens::Gray, (int)e->Graphics->MeasureString(derterNumGroupBox->Text, derterNumGroupBox->Font).Width + 8, 7, derterNumGroupBox->Width - 2, 7);
+		e->Graphics->DrawLine(Pens::Gray, 1, 7, 1, derterNumGroupBox->Height - 2);
+		e->Graphics->DrawLine(Pens::Gray, 1, derterNumGroupBox->Height - 2, derterNumGroupBox->Width - 2, derterNumGroupBox->Height - 2);
+		e->Graphics->DrawLine(Pens::Gray, derterNumGroupBox->Width - 2, 7, derterNumGroupBox->Width - 2, derterNumGroupBox->Height - 2);
+	}
+	private: System::Void captureButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+	}
+	private: System::Void captureButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+	}
+	private: System::Void videoButton_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+	}
+	private: System::Void videoButton_MouseLeave(System::Object^  sender, System::EventArgs^  e) {
+		videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+	}
+	private: System::Void button3_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+
+	}
+	private: System::Void button3_Click(System::Object^  sender, System::EventArgs^  e) {
+		tabControl1->SelectedIndex = 0;
+	}
+	private: System::Void groupBox1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+		e->Graphics->Clear(groupBox1->BackColor);
+		e->Graphics->DrawString(groupBox1->Text, groupBox1->Font, Brushes::White, 10, 1);
+		e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2),1, 7, 8, 7);
+		e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), (int)e->Graphics->MeasureString(groupBox1->Text, groupBox1->Font).Width + 8, 7, groupBox1->Width - 2, 7);
+		//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 0, 7, 1, groupBox1->Height - 2);
+		//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 0, groupBox1->Height - 2, groupBox1->Width - 2, groupBox1->Height - 2);
+		//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), groupBox1->Width, 7, groupBox1->Width , groupBox1->Height );
+	}
+	private: System::Void button1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+	}
+	private: System::Void mainButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		tabControl1->SelectedIndex = 0;
+		mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+		deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
+	}
+	private: System::Void deButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+		mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
+		tabControl1->SelectedIndex = 1;
+	}
+
+	private: System::Void deButton_MouseDown(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
+		if (e->Button == System::Windows::Forms::MouseButtons::Right)
+		{
+			tabControl1->SelectedIndex = 0;
+			deButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)), static_cast<System::Int32>(static_cast<System::Byte>(100)));
+			mainButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+			deButton->Visible = false;
+		}
+	}
+	//矩形
+	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
+		//button1的单击事件
+		button1->Visible = false;
+		button2->Visible = false;
+		button3->Visible = false;
+		region = gcnew UtilSpace::Rectangle();
+	}
+	private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) {
+		//button2的单击事件
+		button1->Visible = false;
+		button2->Visible = false;
+		button3->Visible = false;
+	}
+	//多边形
+	private: System::Void button3_Click_1(System::Object^  sender, System::EventArgs^  e) {
+		//button3的单击事件
+		button1->Visible = false;
+		button2->Visible = false;
+		button3->Visible = false;
+		region = gcnew UtilSpace::Polygon();
+	}
+	};
 }
