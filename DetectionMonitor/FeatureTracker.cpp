@@ -2,128 +2,256 @@
 #include "opencv2/opencv.hpp"
 #include "utilCLass.h"
 using namespace cv;
-//å¸§å¤„ç†åŸºç±»  
+//Ö¡´¦Àí»ùÀà  
 class FrameProcessor {
 public:
-	virtual vector<Point2f> process(Mat &input, Mat &, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) = 0;
+	virtual vector<Point2f> process(Mat &input, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) = 0;
 };
 
-//ç‰¹å¾è·Ÿè¸ªç±»ï¼Œç»§æ‰¿è‡ªå¸§å¤„ç†åŸºç±»  
+//ÌØÕ÷¸ú×ÙÀà£¬¼Ì³Ğ×ÔÖ¡´¦Àí»ùÀà  
 class FeatureTracker : public FrameProcessor {
-	Mat gray;  //å½“å‰ç°åº¦å›¾  
-	Mat gray_prev;  //ä¹‹å‰çš„ç°åº¦å›¾  
+	Mat gray;  //µ±Ç°»Ò¶ÈÍ¼  
+	Mat gray_prev;  //Ö®Ç°µÄ»Ò¶ÈÍ¼  
 	vector<Point2f> points_prev;
-	vector<Point2f> points;//å‰åä¸¤å¸§çš„ç‰¹å¾ç‚¹  
-	vector<Point2f> initial;//åˆå§‹ç‰¹å¾ç‚¹  
-	vector<Point2f> features;//æ£€æµ‹åˆ°çš„ç‰¹å¾  
-	int max_count; //è¦è·Ÿè¸ªç‰¹å¾çš„æœ€å¤§æ•°ç›®  
-	double qlevel; //ç‰¹å¾æ£€æµ‹çš„æŒ‡æ ‡  
-	double minDist;//ç‰¹å¾ç‚¹ä¹‹é—´æœ€å°å®¹å¿è·ç¦»  
-	vector<uchar> status; //ç‰¹å¾ç‚¹è¢«æˆåŠŸè·Ÿè¸ªçš„æ ‡å¿—  
-	vector<float> err; //è·Ÿè¸ªæ—¶çš„ç‰¹å¾ç‚¹å°åŒºåŸŸè¯¯å·®å’Œ  
+	vector<Point2f> points;//Ç°ºóÁ½Ö¡µÄÌØÕ÷µã  
+	//vector<int> point_box;//point_prevÖĞµÄÃ¿¸öÌØÕ÷µãËù¶ÔÓ¦µÄbox¿ò
+	int points_prev_size;//µ±Ç°points_prevÖĞÒÔ´æ´¢µÄ´óĞ¡
+	const int BOXMINSIZE = 50;//Ã¿¸öboxÖĞ×îÉÙµÄÌØÕ÷µãµÄÊıÁ¿
+	vector<Point2f> boxes_prev[2];//ÓÃÓÚ´æ´¢ÉÏÒ»¸öboxes
+	vector<int> offsetCount;//Ã¿¸öboxesÖĞÌØÕ÷µãµÄÊıÁ¿
+	vector<Point2f> initial;//³õÊ¼ÌØÕ÷µã  
+	vector<Point2f> features;//¼ì²âµ½µÄÌØÕ÷  
+	int max_count; //Òª¸ú×ÙÌØÕ÷µÄ×î´óÊıÄ¿  
+	double qlevel; //ÌØÕ÷¼ì²âµÄÖ¸±ê  
+	double minDist;//ÌØÕ÷µãÖ®¼ä×îĞ¡ÈİÈÌ¾àÀë  
+	vector<uchar> status; //ÌØÕ÷µã±»³É¹¦¸ú×ÙµÄ±êÖ¾  
+	vector<float> err; //¸ú×ÙÊ±µÄÌØÕ÷µãĞ¡ÇøÓòÎó²îºÍ  
 public:
 	FeatureTracker() :max_count(500), qlevel(0.01), minDist(10.) {
-		points_prev.resize(1000);//å¦‚æœæ²¡æœ‰äº‹å…ˆåˆ†é…ä¸€éƒ¨åˆ†å†…å­˜ï¼Œpoints_prevä¸çŸ¥é“ä¸ºä»€ä¹ˆä¼šçˆ†æ‰
+		points_prev.reserve(1000);//Èç¹ûÃ»ÓĞÊÂÏÈ·ÖÅäÒ»²¿·ÖÄÚ´æ£¬points_prev²»ÖªµÀÎªÊ²Ã´»á±¬µô
+		points.reserve(1000);
+		//point_box.resize(1000);
+		points_prev_size = 0;
 	}
-	vector<Point2f> process(Mat &frame, Mat &output, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) {
-		//å¾—åˆ°ç°åº¦å›¾  
+	vector<Point2f> process(Mat &frame, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) {
+		//µÃµ½»Ò¶ÈÍ¼  
 		cvtColor(frame, gray, CV_BGR2GRAY);
-		frame.copyTo(output);
-		//ç‰¹å¾ç‚¹å¤ªå°‘äº†ï¼Œé‡æ–°æ£€æµ‹ç‰¹å¾ç‚¹  
-		if (addNewPoint()) {
-			detectFeaturePoint();
-			//æ’å…¥æ£€æµ‹åˆ°çš„ç‰¹å¾ç‚¹  
-			int dddd = points_prev.size();
-			int fff = features.size();
-			//points[0].resize(points[0].size()+features.size());
-			points_prev.insert(points_prev.end(), features.begin(), features.end());
-			initial.insert(initial.end(), features.begin(), features.end());
-		}
-		//ç¬¬ä¸€å¸§  
+		//frame.copyTo(output);
+		//µÚÒ»Ö¡  
 		if (gray_prev.empty()) {
 			gray.copyTo(gray_prev);
 		}
-		//æ ¹æ®å‰åä¸¤å¸§ç°åº¦å›¾ä¼°è®¡å‰ä¸€å¸§ç‰¹å¾ç‚¹åœ¨å½“å‰å¸§çš„ä½ç½®  
-		//é»˜è®¤çª—å£æ˜¯15*15  
-		calcOpticalFlowPyrLK(
-			gray_prev,//å‰ä¸€å¸§ç°åº¦å›¾  
-			gray,//å½“å‰å¸§ç°åº¦å›¾  
-			points_prev,//å‰ä¸€å¸§ç‰¹å¾ç‚¹ä½ç½®  
-			points,//å½“å‰å¸§ç‰¹å¾ç‚¹ä½ç½®  
-			status,//ç‰¹å¾ç‚¹è¢«æˆåŠŸè·Ÿè¸ªçš„æ ‡å¿—  
-			err);//å‰ä¸€å¸§ç‰¹å¾ç‚¹ç‚¹å°åŒºåŸŸå’Œå½“å‰ç‰¹å¾ç‚¹å°åŒºåŸŸé—´çš„å·®ï¼Œæ ¹æ®å·®çš„å¤§å°å¯åˆ é™¤é‚£äº›è¿åŠ¨å˜åŒ–å‰§çƒˆçš„ç‚¹  
-		int k = 0;
-		//å»é™¤é‚£äº›æœªç§»åŠ¨çš„ç‰¹å¾ç‚¹
-		vector<Point2f> offset(boxes->Count);//æ¯ä¸ªboxesçš„åç§»é‡
-		vector<int> offsetCount(boxes->Count);//æ¯ä¸ªboxesä¸­ç‰¹å¾ç‚¹çš„æ•°é‡
-		for (int i = 0; i<points.size(); i++) {
-			//è®¡ç®—æ¯ä¸ªboxä¸­ç‰¹å¾çš„åç§»é‡ï¼Œç¡®å®šæœ€ç»ˆæ•´ä¸ªboxçš„åç§»é‡
-			/*for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++)
+		//ÌØÕ÷µãÌ«ÉÙÁË£¬ÖØĞÂ¼ì²âÌØÕ÷µã  
+		//if (addNewPoint()) {
+		detectFeaturePoint();
+		int debug = 0;
+		//ÅĞ¶ÏboxesÊÇ·ñ¸Ä±ä£¬Èç¹û¸Ä±äÁË£¬ÔòÉ¾µôËùÓĞ±£´æµÄÌØÕ÷µã£¬ÖØĞÂ¼ì²â
+		if (boxes->Count > 0) {
+			if (boxes_prev[0].size() > 0)
 			{
-				if (initial[i].x > boxes[boxIndex]->x1 && initial[i].x < boxes[boxIndex]->x2 && initial[i].y > boxes[boxIndex]->y1&& initial[i].y < boxes[boxIndex]->y2)
-				{
-					offset[boxIndex] += (points[i] - initial[i]);
-					offsetCount[boxIndex]++;
+				if (boxes[0]->x1 != boxes_prev[0][0].x || boxes[0]->y1 != boxes_prev[0][0].y || boxes[0]->x2 != boxes_prev[1][0].x || boxes[0]->y2 != boxes_prev[1][0].y) {
+					insertPrevBoxes(boxes);
 				}
-			}*/
-			if (acceptTrackedPoint(i)) {
-				initial[k] = initial[i];
-				points[k++] = points[i];
+			}
+			else {
+				insertPrevBoxes(boxes);
 			}
 		}
-		//å½’ä¸€åŒ–ç‰¹å¾ç‚¹åç§»é‡
-		/*for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++)
+
+
+		//²åÈë¼ì²âµ½µÄÌØÕ÷µã 
+		vector<Point2f> offset(boxes->Count);//Ã¿¸öboxesµÄÆ«ÒÆÁ¿
+		//±éÀú¼ì²â³öÀ´µÄÌØÕ÷µã£¬ÅĞ¶Ï¸÷¸öÌØÕ÷µã¹éÊôµÄbox£¬²¢·ÅÆúÃ»ÓĞÓÃµÄÌØÕ÷µã
+		debug = points_prev.size();
+		if (boxes->Count == 0)
 		{
-			offset[boxIndex].x = offset[boxIndex].x / offsetCount[boxIndex];
-			offset[boxIndex].y = offset[boxIndex].y / offsetCount[boxIndex];
-		}*/
-		points.erase(points.begin() + k, points.end());
-		initial.resize(k);
-		//æ ‡è®°è¢«è·Ÿè¸ªçš„ç‰¹å¾ç‚¹  
-		handleTrackedPoint(frame, output);
-		//ä¸ºä¸‹ä¸€å¸§è·Ÿè¸ªåˆå§‹åŒ–ç‰¹å¾ç‚¹é›†å’Œç°åº¦å›¾åƒ  
+			points_prev.clear();//Èç¹ûboxesµÄÊıÁ¿Îª0£¬ÔòÒªÖØĞÂÌí¼ÓÉÏÒ»Ö¡µÄÌØÕ÷µã
+			points_prev.insert(points_prev.end(), features.begin(), features.end());
+		}
+		else {
+			for (int i = 0; i < features.size(); i++)
+			{
+				int selectBox = selectMinBox(features[i], boxes);
+				if (selectBox != -1) {
+					points_prev.insert(points_prev.end(), features[i]);
+					//point_box.insert(point_box.end(), selectBox);
+				}
+			}
+		}
+
+		//¸ù¾İÇ°ºóÁ½Ö¡»Ò¶ÈÍ¼¹À¼ÆÇ°Ò»Ö¡ÌØÕ÷µãÔÚµ±Ç°Ö¡µÄÎ»ÖÃ  
+		//Ä¬ÈÏ´°¿ÚÊÇ15*15  
+		if(points_prev.size() == 0)
+			points_prev.insert(points_prev.end(), features.begin(), features.end());
+		calcOpticalFlowPyrLK(
+			gray_prev,//Ç°Ò»Ö¡»Ò¶ÈÍ¼  
+			gray,//µ±Ç°Ö¡»Ò¶ÈÍ¼  
+			points_prev,//Ç°Ò»Ö¡ÌØÕ÷µãÎ»ÖÃ  
+			points,//µ±Ç°Ö¡ÌØÕ÷µãÎ»ÖÃ  
+			status,//ÌØÕ÷µã±»³É¹¦¸ú×ÙµÄ±êÖ¾  
+			err);//Ç°Ò»Ö¡ÌØÕ÷µãµãĞ¡ÇøÓòºÍµ±Ç°ÌØÕ÷µãĞ¡ÇøÓò¼äµÄ²î£¬¸ù¾İ²îµÄ´óĞ¡¿ÉÉ¾³ıÄÇĞ©ÔË¶¯±ä»¯¾çÁÒµÄµã  
+		int k = 0;
+		//È¥³ıÄÇĞ©Î´ÒÆ¶¯µÄÌØÕ÷µã
+		//point_box.clear();
+		int ppppp = points.size();
+		int ppppprev = points_prev.size();
+		resetOffsetCount(0);
+		for (int i = 0; i < points.size(); i++) {
+			//¼ÆËãÃ¿¸öboxÖĞÌØÕ÷µÄÆ«ÒÆÁ¿£¬È·¶¨×îÖÕÕû¸öboxµÄÆ«ÒÆÁ¿
+			/*for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++)
+			{
+			if (initial[i].x > boxes[boxIndex]->x1 || initial[i].x < boxes[boxIndex]->x2 || initial[i].y > boxes[boxIndex]->y1|| initial[i].y < boxes[boxIndex]->y2)
+			{
+			offset[boxIndex] += (points[i] - initial[i]);
+			offsetCount[boxIndex]++;
+			}
+			}*/
+			int selectBox = selectMinBox(points_prev[i], boxes);
+			if (selectBox >= 0) {
+				offset[selectBox] += points[i] - points_prev[i];
+				Point2f debug = offset[selectBox];
+				offsetCount[selectBox]++;
+			}
+			/*if (acceptTrackedPoint(i)) {
+				initial[k] = initial[i];
+				points[k++] = points[i];
+			}*/
+		}
+		//¹éÒ»»¯ÌØÕ÷µãÆ«ÒÆÁ¿
+		for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++)
+		{
+			if (offsetCount[boxIndex] != 0) {
+				offset[boxIndex].x = (int)(offset[boxIndex].x / offsetCount[boxIndex]);
+				offset[boxIndex].y = (int)(offset[boxIndex].y / offsetCount[boxIndex]);
+			}
+			debug = offset[boxIndex].x;
+			debug = offset[boxIndex].y;
+			boxes_prev[0][boxIndex].x += offset[boxIndex].x;
+			boxes_prev[1][boxIndex].x += offset[boxIndex].x;
+			boxes_prev[0][boxIndex].y += offset[boxIndex].y;
+			boxes_prev[1][boxIndex].y += offset[boxIndex].y;
+		}
+		//points.erase(points.begin() + k, points.end());
+		//initial.resize(k);
+		//±ê¼Ç±»¸ú×ÙµÄÌØÕ÷µã  
+		//handleTrackedPoint(frame, output);
+		//ÎªÏÂÒ»Ö¡¸ú×Ù³õÊ¼»¯ÌØÕ÷µã¼¯ºÍ»Ò¶ÈÍ¼Ïñ  
 		std::swap(points, points_prev);
 		cv::swap(gray_prev, gray);
 		return offset;
 	}
 
 	void detectFeaturePoint() {
-		goodFeaturesToTrack(gray,//è¾“å…¥å›¾ç‰‡  
-			features,//è¾“å‡ºç‰¹å¾ç‚¹  
-			max_count,//ç‰¹å¾ç‚¹æœ€å¤§æ•°ç›®  
-			qlevel,//è´¨é‡æŒ‡æ ‡  
-			minDist);//æœ€å°å®¹å¿è·ç¦»  
+		goodFeaturesToTrack(gray_prev,//ÊäÈëÍ¼Æ¬  
+			features,//Êä³öÌØÕ÷µã  
+			max_count,//ÌØÕ÷µã×î´óÊıÄ¿  
+			qlevel,//ÖÊÁ¿Ö¸±ê  
+			minDist);//×îĞ¡ÈİÈÌ¾àÀë  
 	}
 	bool addNewPoint() {
-		//è‹¥ç‰¹å¾ç‚¹æ•°ç›®å°‘äº10ï¼Œåˆ™å†³å®šæ·»åŠ ç‰¹å¾ç‚¹  
+		//ÈôÌØÕ÷µãÊıÄ¿ÉÙÓÚ10£¬Ôò¾ö¶¨Ìí¼ÓÌØÕ÷µã  
 		return points_prev.size() <= 10;
 	}
 
-	//è‹¥ç‰¹å¾ç‚¹åœ¨å‰åä¸¤å¸§ç§»åŠ¨äº†ï¼Œåˆ™è®¤ä¸ºè¯¥ç‚¹æ˜¯ç›®æ ‡ç‚¹ï¼Œä¸”å¯è¢«è·Ÿè¸ª  
+	//ÈôÌØÕ÷µãÔÚÇ°ºóÁ½Ö¡ÒÆ¶¯ÁË£¬ÔòÈÏÎª¸ÃµãÊÇÄ¿±êµã£¬ÇÒ¿É±»¸ú×Ù  
 	bool acceptTrackedPoint(int i) {
 		return status[i] &&
 			(abs(points_prev[i].x - points[i].x) +
-				abs(points_prev[i].y - points[i].y) >2);
+				abs(points_prev[i].y - points[i].y) > 2);
 	}
 
-	//ç”»ç‰¹å¾ç‚¹  
+	//Èô¸ÃµãÔÚ¼ì²â³öÀ´µÄ·½¿òÄÚ£¬ÔòÈÏÎª¸ÃµãÊÇÄ¿±êµã£¬ÇÒ¿É±»¸ú×Ù  
+	bool acceptTrackedPoint(int i, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) {
+		bool isAccept = false;
+		for each (UtilSpace::Result ^result in boxes)
+		{
+			if (points_prev[i].x > result->x1 && points_prev[i].x < result->x2 && points_prev[i].y > result->y1 && points_prev[i].y < result->y2) {
+				isAccept = true;
+				break;
+			}
+		}
+		return isAccept;
+	}
+	//»­ÌØÕ÷µã  
 	void  handleTrackedPoint(Mat &frame, Mat &output) {
-		for (int i = 0; i<points.size(); i++) {
-			//å½“å‰ç‰¹å¾ç‚¹åˆ°åˆå§‹ä½ç½®ç”¨ç›´çº¿è¡¨ç¤º  
+		for (int i = 0; i < points.size(); i++) {
+			//µ±Ç°ÌØÕ÷µãµ½³õÊ¼Î»ÖÃÓÃÖ±Ïß±íÊ¾  
 			line(output, initial[i], points[i], Scalar::all(0));
-			//å½“å‰ä½ç½®ç”¨åœˆæ ‡å‡º  
+			//µ±Ç°Î»ÖÃÓÃÈ¦±ê³ö  
 			circle(output, points[i], 3, Scalar::all(0), (-1));
 		}
 	}
-	//é‡ç½®æ‰€æœ‰æˆå‘˜
+	//ÖØÖÃËùÓĞ³ÉÔ±
 	void finilise() {
-		gray.release();  //å½“å‰ç°åº¦å›¾  
-		gray_prev.release();  //ä¹‹å‰çš„ç°åº¦å›¾  
-		points_prev.clear();//å‰åä¸¤å¸§çš„ç‰¹å¾ç‚¹  
+		gray.release();  //µ±Ç°»Ò¶ÈÍ¼  
+		gray_prev.release();  //Ö®Ç°µÄ»Ò¶ÈÍ¼  
+		points_prev.clear();//Ç°ºóÁ½Ö¡µÄÌØÕ÷µã  
 		points.clear();
-		initial.clear();//åˆå§‹ç‰¹å¾ç‚¹  
-		features.clear();//æ£€æµ‹åˆ°çš„ç‰¹å¾ 
-		status.clear(); //ç‰¹å¾ç‚¹è¢«æˆåŠŸè·Ÿè¸ªçš„æ ‡å¿—  
-		err.clear(); //è·Ÿè¸ªæ—¶çš„ç‰¹å¾ç‚¹å°åŒºåŸŸè¯¯å·®å’Œ  
+		initial.clear();//³õÊ¼ÌØÕ÷µã  
+		features.clear();//¼ì²âµ½µÄÌØÕ÷ 
+		status.clear(); //ÌØÕ÷µã±»³É¹¦¸ú×ÙµÄ±êÖ¾  
+		err.clear(); //¸ú×ÙÊ±µÄÌØÕ÷µãĞ¡ÇøÓòÎó²îºÍ  
+	}
+
+	//½«boxes±£´æÆğÀ´
+	void insertPrevBoxes(System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) {
+		boxes_prev[0].clear();
+		boxes_prev[1].clear();
+		offsetCount.clear();
+		for each (UtilSpace::Result ^ box in boxes)
+		{
+			Point2f temp[2];
+			temp[0].x = box->x1;
+			temp[0].y = box->y1;
+			temp[1].x = box->x2;
+			temp[1].y = box->y2;
+			boxes_prev[0].insert(boxes_prev[0].end(), temp[0]);
+			boxes_prev[1].insert(boxes_prev[1].end(), temp[1]);
+			offsetCount.insert(offsetCount.end(), 0);
+		}
+		reflectPointBox(boxes);
+	}
+
+	//½«ÉÏÒ»Ö¡µÄÌØÕ÷µãÓëboxes¶ÔÓ¦
+	void reflectPointBox(System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) {
+
+		//ÖØĞÂ½«ÉÏÒ»Ö¡¼ì²âµ½µÄÌØÕ÷µãÓëbox¶ÔÓ¦
+		int debug = points_prev.size();
+		for (vector<Point2f>::iterator iter = points_prev.begin(); iter != points_prev.end(); )
+		{
+			int selectBox = selectMinBox(*iter, boxes);
+			if (selectBox != -1) {
+				//point_box.insert(point_box.end(), selectBox);
+				offsetCount[selectBox]++;
+				iter++;
+			}
+			else {
+				iter = points_prev.erase(iter);
+			}
+		}
+	}
+
+	//ÕÒ³ö¾àÀëpµã×î½üµÄbox
+	int selectMinBox(Point2f p, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) {
+		float minDistance = float::MaxValue;//ÌØÕ÷µãÓëÄ³¸öboxµÄÖĞĞÄµÄ×î½ü¾àÀë
+		int selectBox = -1;//¸ÃÌØÕ÷µã¹éÊôµÄboxµÄÏÂ±ê
+		for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++) {
+			if (offsetCount[boxIndex] < BOXMINSIZE && p.x > boxes[boxIndex]->x1 && p.x < boxes[boxIndex]->x2 && p.y > boxes[boxIndex]->y1 && p.y < boxes[boxIndex]->y2) {
+				float centerX = (boxes[boxIndex]->x1 + boxes[boxIndex]->x2) / 2.0;
+				float centerY = (boxes[boxIndex]->y1 + boxes[boxIndex]->y2) / 2.0;
+				float distance = System::Math::Sqrt(System::Math::Pow(p.x - centerX, 2) + System::Math::Pow(p.y - centerY, 2));
+				if (distance < minDistance) {
+					minDistance = distance;
+					selectBox = boxIndex;
+				}
+			}
+		}
+		return selectBox;
+	}
+
+	//ÖØÖÃoffsetCount
+	void resetOffsetCount(int value) {
+		for (vector<int>::iterator iter = offsetCount.begin(); iter != offsetCount.end(); iter++)
+			*iter = 0;
 	}
 };

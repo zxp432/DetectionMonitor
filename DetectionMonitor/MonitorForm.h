@@ -869,16 +869,37 @@ namespace DetectionMonitor {
 					frameToShow = imageQueue.front(); 
 					imageQueue.pop();
 					WaitForSingleObject(resultMutex, INFINITE);
+					vector<cv::Point2f> offset(tracker.process(Mat(frameToShow), results));
+
 					//画出检测结果
-					for each (UtilSpace::Result ^result in results)
+					/*frameShowBox->Image = ConvertMatToBitmap(output);
+					frameShowBox->Refresh();*/
+					for (int i = 0; i < results->Count; i++)
 					{
-						char *cls = StringToCharArray(result->cls);
-						char *score = StringToCharArray(result->score);
+						if (i < offset.size()) {
+							int debug = offset[i].x;
+							results[i]->x1 = results[i]->x1 + offset[i].x;
+							results[i]->x2 = results[i]->x2 + offset[i].x;
+							results[i]->y1 = results[i]->y1 + offset[i].y;
+							results[i]->y2 = results[i]->y2 + offset[i].y;
+						}
+						char *cls = StringToCharArray(results[i]->cls);
+						char *score = StringToCharArray(results[i]->score);
 						//写字
-						cvText(frameToShow, cls, result->x1, result->y1, score);
+						cvText(frameToShow, cls, results[i]->x1, results[i]->y1, score);
 						//画框子
-						cvFrame(frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
+						cvFrame(frameToShow, results[i]->x1, results[i]->y1, results[i]->x2, results[i]->y2, cls);
 					}
+					//画出检测结果
+					//for each (UtilSpace::Result ^result in results)
+					//{
+					//	char *cls = StringToCharArray(result->cls);
+					//	char *score = StringToCharArray(result->score);
+					//	//写字
+					//	cvText(frameToShow, cls, result->x1, result->y1, score);
+					//	//画框子
+					//	cvFrame(frameToShow, result->x1, result->y1, result->x2, result->y2, cls);
+					//}
 					//画出警告区域(多边形)
 					for each(UtilSpace::Region  ^region in regions) {
 
