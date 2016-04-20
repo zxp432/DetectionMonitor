@@ -1045,7 +1045,7 @@ namespace DetectionMonitor {
 		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		capture = cvCaptureFromCAM(0);
 		//fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //ÊÓÆµÖ¡ÂÊ
-		fame_continue = 30;
+		fame_continue = 6;
 		videoBar->Visible = false;
 		videoBar->Minimum = 0;
 		videoBar->Maximum = 0;
