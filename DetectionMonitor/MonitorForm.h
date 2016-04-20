@@ -137,7 +137,6 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::Button^  button3;
 	private: System::Windows::Forms::Button^  button2;
 	private: System::Windows::Forms::Button^  button1;
-			 System::Windows::Forms::Timer^  beepTime;
 
 	public:
 		MonitorForm(void)
@@ -921,7 +920,7 @@ namespace DetectionMonitor {
 						{
 							region->draw(frameToShow, 255, 0, 0);
 							labelWarning->Text = "¾¯¸æ£¡£¡£¡";
-							//beepTime->Start();
+							beepTimer->Start();
 						}
 
 					}
@@ -954,6 +953,7 @@ namespace DetectionMonitor {
 		result = client->receive();
 		client->closeSocket();
 		ReleaseMutex(frameMutex);
+		WaitForSingleObject(resultMutex, INFINITE);
 		List<UtilSpace::Result ^> ^resultsTemp = gcnew List<UtilSpace::Result ^>();
 		if (!result->Equals(""))
 		{
@@ -971,7 +971,6 @@ namespace DetectionMonitor {
 				resultsTemp->Add(temp);
 			}
 		}
-		WaitForSingleObject(resultMutex, INFINITE);
 		results = resultsTemp;
 		fpsCount++;
 		ReleaseMutex(resultMutex);
@@ -1039,14 +1038,14 @@ namespace DetectionMonitor {
 		System::Media::SoundPlayer ^sp = gcnew SoundPlayer();
 		sp->SoundLocation = "BLEEP1_S.WAV";
 		sp->Play();
-		beepTime->Stop();
+		beepTimer->Stop();
 	}
 
 	private: System::Void captureButton_Click(System::Object^  sender, System::EventArgs^  e) {
 		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		capture = cvCaptureFromCAM(0);
 		//fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //ÊÓÆµÖ¡ÂÊ
-		fame_continue = 6;
+		fame_continue = 30;
 		videoBar->Visible = false;
 		videoBar->Minimum = 0;
 		videoBar->Maximum = 0;
