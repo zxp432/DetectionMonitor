@@ -18,25 +18,27 @@
 #pragma comment (lib, "opencv_ts2411d.lib")
 #pragma comment (lib, "opencv_video2411d.lib")
 #pragma comment (lib, "opencv_videostab2411d.lib")
-#pragma comment (lib, "opencv_calib3d2411.lib")
-#pragma comment (lib, "opencv_contrib2411.lib")
-#pragma comment (lib, "opencv_core2411.lib")
-#pragma comment (lib, "opencv_features2d2411.lib")
-#pragma comment (lib, "opencv_flann2411.lib")
-#pragma comment (lib, "opencv_gpu2411.lib")
-#pragma comment (lib, "opencv_highgui2411.lib")
-#pragma comment (lib, "opencv_imgproc2411.lib")
-#pragma comment (lib, "opencv_legacy2411.lib")
-#pragma comment (lib, "opencv_ml2411.lib")
-#pragma comment (lib, "opencv_nonfree2411.lib")
-#pragma comment (lib, "opencv_objdetect2411.lib")
-#pragma comment (lib, "opencv_ocl2411.lib")
-#pragma comment (lib, "opencv_photo2411.lib")
-#pragma comment (lib, "opencv_stitching2411.lib")
-#pragma comment (lib, "opencv_superres2411.lib")
-#pragma comment (lib, "opencv_ts2411.lib")
-#pragma comment (lib, "opencv_video2411.lib")
-#pragma comment (lib, "opencv_videostab2411.lib")
+
+//#pragma comment (lib, "opencv_calib3d2411.lib")
+//#pragma comment (lib, "opencv_contrib2411.lib")
+//#pragma comment (lib, "opencv_core2411.lib")
+//#pragma comment (lib, "opencv_features2d2411.lib")
+//#pragma comment (lib, "opencv_flann2411.lib")
+//#pragma comment (lib, "opencv_gpu2411.lib")
+//#pragma comment (lib, "opencv_highgui2411.lib")
+//#pragma comment (lib, "opencv_imgproc2411.lib")
+//#pragma comment (lib, "opencv_legacy2411.lib")
+//#pragma comment (lib, "opencv_ml2411.lib")
+//#pragma comment (lib, "opencv_nonfree2411.lib")
+//#pragma comment (lib, "opencv_objdetect2411.lib")
+//#pragma comment (lib, "opencv_ocl2411.lib")
+//#pragma comment (lib, "opencv_photo2411.lib")
+//#pragma comment (lib, "opencv_stitching2411.lib")
+//#pragma comment (lib, "opencv_superres2411.lib")
+//#pragma comment (lib, "opencv_ts2411.lib")
+//#pragma comment (lib, "opencv_video2411.lib")
+//#pragma comment (lib, "opencv_videostab2411.lib")
+
 #include <list>   
 #include <numeric> 
 #include "opencv/cv.h"
@@ -875,7 +877,7 @@ namespace DetectionMonitor {
 					frameShowBox->Refresh();*/
 					for (int i = 0; i < results->Count; i++)
 					{
-						if (i < offset.size()) {
+						if (i < offset.size()) {//offset有可能为空
 							int debug = offset[i].x;
 							results[i]->x1 = results[i]->x1 + offset[i].x;
 							results[i]->x2 = results[i]->x2 + offset[i].x;
@@ -1043,6 +1045,8 @@ namespace DetectionMonitor {
 
 	private: System::Void captureButton_Click(System::Object^  sender, System::EventArgs^  e) {
 		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+		captureButton->Enabled = false;
+		videoButton->Enabled = false;
 		capture = cvCaptureFromCAM(0);
 		//fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
 		fame_continue = 6;
@@ -1064,6 +1068,8 @@ namespace DetectionMonitor {
 		videoFileDialog->Filter = "AVI files (*.avi)|*.txt|All files (*.*)|*.*";
 		videoFileDialog->FilterIndex = 2;
 		videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
+		captureButton->Enabled = false;
+		videoButton->Enabled = false;
 		videoFileDialog->RestoreDirectory = true;
 		videoFileDialog->FileName = "";
 		videoBar->Visible = true;
@@ -1108,6 +1114,8 @@ namespace DetectionMonitor {
 		tracker.finilise();
 		int frameWidth = 640;
 		int frameHeight = 480;
+		captureButton->Enabled = true;
+		videoButton->Enabled = true;
 		/*while (!imageQueue.empty()) {
 		imageQueue.pop();
 		}*/
@@ -1238,5 +1246,5 @@ namespace DetectionMonitor {
 		button3->Visible = false;
 		region = gcnew UtilSpace::Polygon();
 	}
-	};
+};
 }

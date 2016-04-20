@@ -140,12 +140,6 @@ public:
 		vector<Point2f> offset(boxes->Count);//每个boxes的偏移量
 		if (boxes->Count == 0)
 			return offset;
-		int mmm = offset.size();
-		int debug = points_prev.size();
-		int debug2 = boxes_prev[0].size();
-		int debug3 = boxes_prev[1].size();
-		int debug4 = point_box.size();
-		int debug5 = offsetCount.size();
 		//得到灰度图  
 		cvtColor(frame, gray, CV_BGR2GRAY);
 		//frame.copyTo(output);
@@ -176,7 +170,6 @@ public:
 		//根据前后两帧灰度图估计前一帧特征点在当前帧的位置
 		if (points_prev.size() == 0)//如果特征点都不在boxes里面，则直接返回
 			return offset;
-		int mmmm_prev= points_prev.size();
 		calcOpticalFlowPyrLK(
 			gray_prev,//前一帧灰度图  
 			gray,//当前帧灰度图  
@@ -184,29 +177,8 @@ public:
 			points,//当前帧特征点位置  
 			status,//特征点被成功跟踪的标志  
 			err);//前一帧特征点点小区域和当前特征点小区域间的差，根据差的大小可删除那些运动变化剧烈的点  
-		int mmmm = points_prev.size();
-		if (mmmm_prev != mmmm)
-			int ddddddddd = 0;
 		for (int i = 0; i < points.size(); i++) {
 			//计算每个box中特征的偏移量，确定最终整个box的偏移量
-			if (i >= point_box.size())
-				int mmmmm = point_box.size();
-			if (point_box[i] >= offset.size())
-			{
-				int mmmm = point_box[i];
-				int mm = offset.size();
-				for (int kk = 0; kk < point_box.size(); kk++)
-				{
-					int ddddd = point_box[kk];
-					if (i > 0)
-					{
-						int dd = point_box[kk - 1];
-						if (dd != ddddd) {
-							int mmmm = point_box.size();
-						}
-					}
-				}
-			}
 			if (point_box[i] >= 0) {
 				offset[point_box[i]] += points[i] - points_prev[i];
 			}
@@ -214,12 +186,6 @@ public:
 		//归一化特征点偏移量
 		for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++)
 		{
-			if (boxIndex >= offsetCount.size())
-				int mmmm = offsetCount.size();
-			if (boxIndex >= offset.size())
-				int mmmm = offset.size();
-			if (boxIndex >= boxes_prev[0].size())
-				int mmmm = boxes_prev[0].size();
 			if (offsetCount[boxIndex] != 0) {
 				offset[boxIndex].x = (int)(offset[boxIndex].x / offsetCount[boxIndex]);
 				offset[boxIndex].y = (int)(offset[boxIndex].y / offsetCount[boxIndex]);
@@ -317,8 +283,6 @@ public:
 		{
 			int selectBox = selectMinBox(*iter, boxes);
 			if (selectBox != -1) {
-				if (selectBox >= boxes->Count)
-					int mm = boxes->Count;
 				point_box.insert(point_box.end(), selectBox);
 				offsetCount[selectBox]++;
 				iter++;
@@ -335,8 +299,6 @@ public:
 		int selectBox = -1;//该特征点归属的box的下标
 		int debug = offsetCount.size();
 		for (int boxIndex = 0; boxIndex < boxes->Count; boxIndex++) {
-			if (boxIndex >= offsetCount.size())
-				int mmmm = offsetCount.size();
 			if (offsetCount[boxIndex] < BOXMINSIZE && p.x > boxes[boxIndex]->x1 && p.x < boxes[boxIndex]->x2 && p.y > boxes[boxIndex]->y1 && p.y < boxes[boxIndex]->y2) {
 				float centerX = (boxes[boxIndex]->x1 + boxes[boxIndex]->x2) / 2.0;
 				float centerY = (boxes[boxIndex]->y1 + boxes[boxIndex]->y2) / 2.0;
@@ -347,8 +309,6 @@ public:
 				}
 			}
 		}
-		if (selectBox >= boxes->Count)
-			int mm = boxes->Count;
 		return selectBox;
 	}
 
