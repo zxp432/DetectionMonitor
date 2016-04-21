@@ -1237,6 +1237,7 @@ namespace DetectionMonitor {
 		button1->Visible = false;
 		button2->Visible = false;
 		button3->Visible = false;
+		region = gcnew UtilSpace::Circle();
 	}
 	//¶à±ßÐÎ
 	private: System::Void button3_Click_1(System::Object^  sender, System::EventArgs^  e) {
