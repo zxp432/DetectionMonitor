@@ -73,6 +73,35 @@ namespace UtilSpace {
 	public:virtual void draw(IplImage *frameToShow, int r, int g, int b) {}
 	public:virtual bool areTwoAreasOverlapped(Result ^rect) { return false; }
 	public:virtual void drawIncomplete(IplImage *frameToShow) {}
+	public:virtual float timeToAlarm(Result ^result, cv::Point2f speed) { return 0; }//计算result进入报警区域的时间
+	public: float timeToAlarm(Result ^result, cv::Point2f speed, int x1, int y1, int x2, int y2) {
+		int time = 0;//进入报警区域的时间
+		float xCenterDistance = (result->x1 + result->x2) / 2.0 - (x1 + x2) / 2.0;//x方向上中心点的距离
+		float yCenterDistance = (result->y1 + result->y2) / 2.0 - (y1 + y2) / 2.0;//y方向上中心点的距离
+		if (xCenterDistance * speed.x >= 0 || yCenterDistance * speed.y >= 0)
+			return time;//如果result的运动方向与报警区域的运动方向相反，则不会相交
+		int totalWidth = abs(result->x1 - result->x2) + abs(x1 - x2);//两个长方形宽和
+		int totalLength = abs(result->y1 - result->y2) + abs(y1 - y2);//两个长方形长和
+		float xDistance = abs(xCenterDistance) - totalWidth / 2.0;
+		float yDistance = abs(yCenterDistance) - totalLength / 2.0;
+		if (xDistance <= 0 && yDistance <= 0)//如果两个中心点的距离小于宽和长的一半，则必定相交
+			return 0;
+		float xRate = abs(speed.x);//x方向的速率
+		float yRate = abs(speed.y);//x方向的速率
+		float xTime = xDistance / xRate;//在x方向进入报警区域的时间
+		float yTime = yDistance / yRate;//在有方向进入报警区域的时间
+		if (xTime < yTime)
+		{
+			if ((xTime + totalWidth / xRate) > yTime) {//在x方向从进入报警区域到离开的时间内，如果y方向进入报警区域才真正会进入报警区域
+				time = yTime;
+			}
+		}
+		else if (yTime < xTime) {
+			if ((yTime + totalLength / yRate) > xTime)//在y方向从进入报警区域到离开的时间内，如果x方向进入报警区域才真正会进入报警区域
+				time = xTime;
+		}
+		return time;
+	}
 	};
 
 	//监控矩形区域
@@ -156,6 +185,9 @@ namespace UtilSpace {
 			return false;
 
 		return true;
+	}
+	public: float timeToAlarm(Result ^result, cv::Point2f speed) override {
+		return timeToAlarm(result, speed, this->x1, this->y1, this->x2, this->y2);
 	}
 	};
 
@@ -329,7 +361,25 @@ namespace UtilSpace {
 
 			   return oddNodes;
 		   }
-
+	public: float timeToAlarm(Result ^result, cv::Point2f speed) override {
+		int leftTopx = int::MaxValue;
+		int leftTopy = int::MaxValue;
+		int rightBottomx = -1;
+		int rightBottomy = -1;
+		//找出这个多边形的外接长方形的左顶点和右下角
+		for each (Point ^point in this->points)
+		{
+			if (point->x < leftTopx)
+				leftTopx = point->x;
+			if (point->y < leftTopy)
+				leftTopy = point->y;
+			if (point->x > rightBottomx)
+				rightBottomx = point->x;
+			if (point->y > rightBottomy)
+				rightBottomy = point->y;
+		}
+		return timeToAlarm(result, speed, leftTopx, leftTopy, rightBottomx, rightBottomy);
+	}
 	};
 
 	ref class Circle :Region {
@@ -436,6 +486,8 @@ namespace UtilSpace {
 			return true;
 		return false;
 	}
-
+	public: float timeToAlarm(Result ^result, cv::Point2f speed) override {
+		return timeToAlarm(result, speed, center->x - this->r, center->y - this->r, center->x + this->r, center->y + this->r);
+	}
 	};
 }

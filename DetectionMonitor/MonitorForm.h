@@ -138,6 +138,10 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::GroupBox^  groupBox2;
 	private: System::Windows::Forms::Button^  button3;
 	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Label^  cameraLabel;
+	private: System::Windows::Forms::Label^  videoLable;
+
+
 	private: System::Windows::Forms::Button^  button1;
 
 	public:
@@ -209,6 +213,8 @@ namespace DetectionMonitor {
 			this->components = (gcnew System::ComponentModel::Container());
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(MonitorForm::typeid));
 			this->detectionSourceGroup = (gcnew System::Windows::Forms::GroupBox());
+			this->videoLable = (gcnew System::Windows::Forms::Label());
+			this->cameraLabel = (gcnew System::Windows::Forms::Label());
 			this->videoButton = (gcnew System::Windows::Forms::Button());
 			this->captureButton = (gcnew System::Windows::Forms::Button());
 			this->buttonClean = (gcnew System::Windows::Forms::Button());
@@ -264,6 +270,8 @@ namespace DetectionMonitor {
 			// 
 			this->detectionSourceGroup->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)),
 				static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+			this->detectionSourceGroup->Controls->Add(this->videoLable);
+			this->detectionSourceGroup->Controls->Add(this->cameraLabel);
 			this->detectionSourceGroup->Controls->Add(this->videoButton);
 			this->detectionSourceGroup->Controls->Add(this->captureButton);
 			this->detectionSourceGroup->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 12, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
@@ -276,6 +284,30 @@ namespace DetectionMonitor {
 			this->detectionSourceGroup->TabStop = false;
 			this->detectionSourceGroup->Text = L"检测源";
 			this->detectionSourceGroup->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::detectionSourceGroup_Paint);
+			// 
+			// videoLable
+			// 
+			this->videoLable->AutoSize = true;
+			this->videoLable->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->videoLable->ForeColor = System::Drawing::Color::DarkGray;
+			this->videoLable->Location = System::Drawing::Point(48, 64);
+			this->videoLable->Name = L"videoLable";
+			this->videoLable->Size = System::Drawing::Size(64, 18);
+			this->videoLable->TabIndex = 17;
+			this->videoLable->Text = L"视频检测";
+			this->videoLable->Visible = false;
+			// 
+			// cameraLabel
+			// 
+			this->cameraLabel->AutoSize = true;
+			this->cameraLabel->Font = (gcnew System::Drawing::Font(L"微軟正黑體", 10));
+			this->cameraLabel->ForeColor = System::Drawing::Color::DarkGray;
+			this->cameraLabel->Location = System::Drawing::Point(39, 31);
+			this->cameraLabel->Name = L"cameraLabel";
+			this->cameraLabel->Size = System::Drawing::Size(78, 18);
+			this->cameraLabel->TabIndex = 5;
+			this->cameraLabel->Text = L"摄像头检测";
+			this->cameraLabel->Visible = false;
 			// 
 			// videoButton
 			// 
@@ -757,9 +789,11 @@ namespace DetectionMonitor {
 			this->Controls->Add(this->deButton);
 			this->Controls->Add(this->mainButton);
 			this->Controls->Add(this->tabControl1);
+			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"MonitorForm";
-			this->Text = L"MonitorForm";
+			this->Text = L"视频流监控";
 			this->detectionSourceGroup->ResumeLayout(false);
+			this->detectionSourceGroup->PerformLayout();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->videoBar))->EndInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->frameShowBox))->EndInit();
 			this->tabControl1->ResumeLayout(false);
@@ -777,39 +811,39 @@ namespace DetectionMonitor {
 		}
 #pragma endregion
 
-	//private: System::Void startBtn_Click(System::Object^  sender, System::EventArgs^  e) {
-	//		frameTimer->Stop();
-	//		calculateTImer->Stop();
-	//		for each(Thread ^t in threadList)
-	//		{
-	//			t->Join();
-	//		}
-	//		cvReleaseCapture(&capture);
-	//		now_frame_no = 0;
-	//		startPoint = nullptr;
-	//		endPoint = nullptr;
-	//		//frameShowBox->Enabled = false;
-	//		drawing = false;
-	//		newDraw = false;
-	//		results->Clear();
-	//		regions->Clear();
-	//		ReleaseMutex(frameMutex);
-	//		ReleaseMutex(resultMutex);
-	//		ReleaseMutex(frameTimerHandle);
-	//		ReleaseMutex(socketHandle);
-	//		tracker.finilise();
-	//		int frameWidth = 640;
-	//		int frameHeight = 480;
-	//		/*while (!imageQueue.empty()) {
-	//		imageQueue.pop();
-	//		}*/
-	//}
-	//视频滚动条的函数
+		//private: System::Void startBtn_Click(System::Object^  sender, System::EventArgs^  e) {
+		//		frameTimer->Stop();
+		//		calculateTImer->Stop();
+		//		for each(Thread ^t in threadList)
+		//		{
+		//			t->Join();
+		//		}
+		//		cvReleaseCapture(&capture);
+		//		now_frame_no = 0;
+		//		startPoint = nullptr;
+		//		endPoint = nullptr;
+		//		//frameShowBox->Enabled = false;
+		//		drawing = false;
+		//		newDraw = false;
+		//		results->Clear();
+		//		regions->Clear();
+		//		ReleaseMutex(frameMutex);
+		//		ReleaseMutex(resultMutex);
+		//		ReleaseMutex(frameTimerHandle);
+		//		ReleaseMutex(socketHandle);
+		//		tracker.finilise();
+		//		int frameWidth = 640;
+		//		int frameHeight = 480;
+		//		/*while (!imageQueue.empty()) {
+		//		imageQueue.pop();
+		//		}*/
+		//}
+		//视频滚动条的函数
 	private: System::Void videoBar_Scroll(System::Object^  sender, System::EventArgs^  e) {
 		cvSetCaptureProperty(capture, CV_CAP_PROP_POS_FRAMES, videoBar->Value);
 	}
 
-	//写字的
+			 //写字的
 	private: System::Void cvText(IplImage* img, const char* cls, int x, int y, const char* score)
 	{
 		CvFont font;
@@ -828,14 +862,14 @@ namespace DetectionMonitor {
 		cvPutText(img, temp, textPos, &font, textColor);
 	}
 
-	//画框的
+			 //画框的
 	private: System::Void cvFrame(IplImage* img, int x1, int y1, int x2, int y2, const char* cls)
 	{
 		it = colorMap.find(cls);
 		cvRectangle(img, cvPoint(x1, y1), cvPoint(x2, y2), CV_RGB((*it).second.R, (*it).second.G, (*it).second.B), 2);
 	}
 
-	//循环画帧
+			 //循环画帧
 	private: System::Void frameTimer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		try
 		{
@@ -867,7 +901,7 @@ namespace DetectionMonitor {
 				if (imageQueue.size() == fame_continue) {
 					labelWarning->Text = "";//初始化警告框
 					cvReleaseImage(&frameToShow);
-					frameToShow = imageQueue.front(); 
+					frameToShow = imageQueue.front();
 					imageQueue.pop();
 					WaitForSingleObject(resultMutex, INFINITE);
 					vector<cv::Point2f> offset(tracker.process(Mat(frameToShow), results));
@@ -907,27 +941,36 @@ namespace DetectionMonitor {
 						bool call_110 = false;
 						//if(count>2 && region[count]->x == region[2]->x && region[count]->y == region[2]->y){
 						//检测有没有是人的框子踏入了警告区域
+						int i = 0;
+						float time = 0;
 						for each (UtilSpace::Result ^result in results)
 						{
-							if (result->cls->Equals("person") && region->areTwoAreasOverlapped(result))//如果有人的区域与警告区域重叠，跳出循环，警告
+							if (!call_110 && result->cls->Equals("person") && region->areTwoAreasOverlapped(result))//如果有人的区域与警告区域重叠，跳出循环，警告
 							{
 								call_110 = true;
-								break;
 							}
+							/*if (i <= offset.size() && result->cls->Equals("person"))
+							{
+								float tempTime = region->timeToAlarm(result, offset[i]);
+								if ((time == 0 && tempTime != 0) || tempTime < time)
+									time = tempTime;
+							}*/
+							i++;
 						}
+						//labelWarning->Text = "警告！！！" + time;
 						if (!call_110) {
 							region->draw(frameToShow, 255, 255, 255);
 						}
 						else
 						{
 							region->draw(frameToShow, 255, 0, 0);
-							labelWarning->Text = "警告！！！";
+							labelWarning->Text = "警告！！！" + time;
 							beepTimer->Start();
 						}
 
 					}
 
-					if (region!=nullptr && region->drawing && !region->newDraw)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
+					if (region != nullptr && region->drawing && !region->newDraw)//当前是绘画状态而且起码画了一个点，则把画完的线显示出来
 					{
 						region->drawIncomplete(frameToShow);
 					}
@@ -947,7 +990,7 @@ namespace DetectionMonitor {
 		}
 	}
 
-	//发送需要被检测的帧到服务器并返回结果
+			 //发送需要被检测的帧到服务器并返回结果
 	private:void SendFrame() {
 		WaitForSingleObject(frameMutex, INFINITE);
 		client->connect();
@@ -1024,7 +1067,7 @@ namespace DetectionMonitor {
 
 	private: UtilSpace::Region ^region;
 
-	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e){
+	private: System::Void buttonPaint_Click(System::Object^  sender, System::EventArgs^  e) {
 		button1->Visible = true;
 		button2->Visible = true;
 		button3->Visible = true;
@@ -1035,7 +1078,7 @@ namespace DetectionMonitor {
 		region = nullptr;
 	}
 
-	//警告区域相关的函数结束
+			 //警告区域相关的函数结束
 	private: System::Void beepTimer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		System::Media::SoundPlayer ^sp = gcnew SoundPlayer();
 		sp->SoundLocation = "BLEEP1_S.WAV";
@@ -1047,6 +1090,8 @@ namespace DetectionMonitor {
 		captureButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		captureButton->Enabled = false;
 		videoButton->Enabled = false;
+		cameraLabel->Visible = true;
+		videoLable->Visible = true;
 		capture = cvCaptureFromCAM(0);
 		//fps = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS); //视频帧率
 		fame_continue = 6;
@@ -1070,6 +1115,8 @@ namespace DetectionMonitor {
 		videoButton->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(0)), static_cast<System::Int32>(static_cast<System::Byte>(122)), static_cast<System::Int32>(static_cast<System::Byte>(204)));
 		captureButton->Enabled = false;
 		videoButton->Enabled = false;
+		cameraLabel->Visible = true;
+		videoLable->Visible = true;
 		videoFileDialog->RestoreDirectory = true;
 		videoFileDialog->FileName = "";
 		videoBar->Visible = true;
@@ -1116,6 +1163,8 @@ namespace DetectionMonitor {
 		int frameHeight = 480;
 		captureButton->Enabled = true;
 		videoButton->Enabled = true;
+		cameraLabel->Visible = false;
+		videoLable->Visible = false;
 		/*while (!imageQueue.empty()) {
 		imageQueue.pop();
 		}*/
@@ -1196,7 +1245,7 @@ namespace DetectionMonitor {
 	private: System::Void groupBox1_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
 		e->Graphics->Clear(groupBox1->BackColor);
 		e->Graphics->DrawString(groupBox1->Text, groupBox1->Font, Brushes::White, 10, 1);
-		e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2),1, 7, 8, 7);
+		e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 1, 7, 8, 7);
 		e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), (int)e->Graphics->MeasureString(groupBox1->Text, groupBox1->Font).Width + 8, 7, groupBox1->Width - 2, 7);
 		//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 0, 7, 1, groupBox1->Height - 2);
 		//e->Graphics->DrawLine(gcnew Pen(Color::FromArgb(0, 122, 204), 2), 0, groupBox1->Height - 2, groupBox1->Width - 2, groupBox1->Height - 2);
@@ -1224,7 +1273,7 @@ namespace DetectionMonitor {
 			deButton->Visible = false;
 		}
 	}
-	//矩形
+			 //矩形
 	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
 		//button1的单击事件
 		button1->Visible = false;
@@ -1239,7 +1288,7 @@ namespace DetectionMonitor {
 		button3->Visible = false;
 		region = gcnew UtilSpace::Circle();
 	}
-	//多边形
+			 //多边形
 	private: System::Void button3_Click_1(System::Object^  sender, System::EventArgs^  e) {
 		//button3的单击事件
 		button1->Visible = false;
@@ -1247,5 +1296,5 @@ namespace DetectionMonitor {
 		button3->Visible = false;
 		region = gcnew UtilSpace::Polygon();
 	}
-};
+	};
 }
