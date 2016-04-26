@@ -51,12 +51,17 @@
 #include "utils.h"
 #include "utilCLass.h"
 #include "FeatureTracker.cpp"
+#include <opencv2/legacy/compat.hpp>  
+#define LENGTHSHORTQUEUE 20
+#define LENGTHLONGQUEUE 20
+#define STUDYLENGTH 100
 CvCapture* capture;
 IplImage *frame;
 //以下三个设置成全局变量的原因是要释放内存，否则随着程序的运行内存会溢出
 IplImage *frameSend;//用于发送的帧
 IplImage *prevFrame;//用于复制前一帧并存进队列
 IplImage *frameToShow;//用于显示帧
+IplImage *oneFrame;//用于灰度图
 
 int timeCount;
 double fps;
@@ -64,6 +69,18 @@ int fpsCount;
 int now_frame_no = 0;
 int fame_continue = 6;
 std::queue<IplImage *> imageQueue;
+std::queue<int> shortQueue;
+std::queue<int> longQueue;
+vector<float> shortVector;
+vector<float> longVector;
+int wraningShe = 0;
+int dBetween;
+int dLong = -1;
+int wraning;
+int isStudying = 0;
+float studyTemp[STUDYLENGTH];
+int nowStudyLength = 0;
+int finshNum;
 FeatureTracker tracker;// = new FeatureTracker();
 
 struct MyRGB
@@ -97,16 +114,17 @@ namespace DetectionMonitor {
 			List<UtilSpace::Result ^> ^results = gcnew List<UtilSpace::Result ^>();
 			List<Thread ^> ^threadList = gcnew List<Thread ^>();//将所有线程放入线程池中
 			System::String ^result = "";// "12-12-15-115-0.98-person,12-12-15-115-0.98-person,";
-
+			FileStream ^fs;
 			List<UtilSpace::Region ^> ^regions = gcnew List<UtilSpace::Region ^>();
-
+			System::String ^strNum = "LONG\t\t\tBTWEEN\r\n";
 			HANDLE frameMutex = CreateMutex(NULL, FALSE, NULL);//用于frame多线程读写时的互斥变量
 			HANDLE resultMutex = CreateMutex(NULL, FALSE, NULL);
 			HANDLE frameTimerHandle = CreateMutex(NULL, FALSE, NULL);
 			HANDLE socketHandle = CreateMutex(NULL, FALSE, NULL);
 			int frameWidth = 640;
 			int frameHeight = 480;
-			//警告区域相关的变量
+			int isShel = 0;//用于开关异物遮挡报警
+						   //警告区域相关的变量
 	private: System::Windows::Forms::Timer^  frameTimer;
 	private: System::Windows::Forms::Timer^  beepTimer;
 	private: System::Windows::Forms::Timer^  calculateTImer;
@@ -138,9 +156,10 @@ namespace DetectionMonitor {
 	private: System::Windows::Forms::GroupBox^  groupBox2;
 	private: System::Windows::Forms::Button^  button3;
 	private: System::Windows::Forms::Button^  button2;
+	private: System::Windows::Forms::Label^  finshLabel;
 	private: System::Windows::Forms::Label^  cameraLabel;
 	private: System::Windows::Forms::Label^  videoLable;
-
+	private: System::Windows::Forms::Button^  startStudyButton;
 
 	private: System::Windows::Forms::Button^  button1;
 
@@ -215,6 +234,7 @@ namespace DetectionMonitor {
 			this->detectionSourceGroup = (gcnew System::Windows::Forms::GroupBox());
 			this->videoLable = (gcnew System::Windows::Forms::Label());
 			this->cameraLabel = (gcnew System::Windows::Forms::Label());
+			this->startStudyButton = (gcnew System::Windows::Forms::Button());
 			this->videoButton = (gcnew System::Windows::Forms::Button());
 			this->captureButton = (gcnew System::Windows::Forms::Button());
 			this->buttonClean = (gcnew System::Windows::Forms::Button());
@@ -235,6 +255,7 @@ namespace DetectionMonitor {
 			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->button1 = (gcnew System::Windows::Forms::Button());
 			this->derterNumGroupBox = (gcnew System::Windows::Forms::GroupBox());
+			this->finshLabel = (gcnew System::Windows::Forms::Label());
 			this->stopButton = (gcnew System::Windows::Forms::Button());
 			this->paintLabel = (gcnew System::Windows::Forms::Label());
 			this->cleanLabel = (gcnew System::Windows::Forms::Label());
@@ -270,6 +291,7 @@ namespace DetectionMonitor {
 			// 
 			this->detectionSourceGroup->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)),
 				static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+			this->detectionSourceGroup->Controls->Add(this->startStudyButton);
 			this->detectionSourceGroup->Controls->Add(this->videoLable);
 			this->detectionSourceGroup->Controls->Add(this->cameraLabel);
 			this->detectionSourceGroup->Controls->Add(this->videoButton);
@@ -308,6 +330,16 @@ namespace DetectionMonitor {
 			this->cameraLabel->TabIndex = 5;
 			this->cameraLabel->Text = L"摄像头检测";
 			this->cameraLabel->Visible = false;
+			// 
+			// startStudyButton
+			// 
+			this->startStudyButton->Location = System::Drawing::Point(41, 92);
+			this->startStudyButton->Name = L"startStudyButton";
+			this->startStudyButton->Size = System::Drawing::Size(75, 30);
+			this->startStudyButton->TabIndex = 17;
+			this->startStudyButton->Text = L"button4";
+			this->startStudyButton->UseVisualStyleBackColor = true;
+			this->startStudyButton->Click += gcnew System::EventHandler(this, &MonitorForm::startStudyButton_Click);
 			// 
 			// videoButton
 			// 
@@ -544,6 +576,7 @@ namespace DetectionMonitor {
 			// 
 			this->derterNumGroupBox->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(28)),
 				static_cast<System::Int32>(static_cast<System::Byte>(28)), static_cast<System::Int32>(static_cast<System::Byte>(28)));
+			this->derterNumGroupBox->Controls->Add(this->finshLabel);
 			this->derterNumGroupBox->Controls->Add(this->labelWarning);
 			this->derterNumGroupBox->Controls->Add(this->receiveRateLabel);
 			this->derterNumGroupBox->Controls->Add(this->frameRateLabel);
@@ -557,6 +590,16 @@ namespace DetectionMonitor {
 			this->derterNumGroupBox->TabStop = false;
 			this->derterNumGroupBox->Text = L"检测参数";
 			this->derterNumGroupBox->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &MonitorForm::derterNumGroupBox_Paint);
+			// 
+			// finshLabel
+			// 
+			this->finshLabel->AutoSize = true;
+			this->finshLabel->Location = System::Drawing::Point(10, 100);
+			this->finshLabel->Name = L"finshLabel";
+			this->finshLabel->Size = System::Drawing::Size(109, 20);
+			this->finshLabel->TabIndex = 16;
+			this->finshLabel->Text = L"学习遮挡进度:";
+			this->finshLabel->Visible = false;
 			// 
 			// stopButton
 			// 
@@ -601,6 +644,7 @@ namespace DetectionMonitor {
 			this->shelterButton->Size = System::Drawing::Size(35, 35);
 			this->shelterButton->TabIndex = 18;
 			this->shelterButton->UseVisualStyleBackColor = true;
+			this->shelterButton->Click += gcnew System::EventHandler(this, &MonitorForm::shelterButton_Click);
 			this->shelterButton->MouseLeave += gcnew System::EventHandler(this, &MonitorForm::shelterButton_MouseLeave);
 			this->shelterButton->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &MonitorForm::shelterButton_MouseMove);
 			// 
@@ -876,6 +920,7 @@ namespace DetectionMonitor {
 			frame = cvQueryFrame(capture);
 			if (frame != NULL)
 			{
+
 				/*cv::Mat output;
 				vector<cv::Point2f> offset(tracker.process(Mat(frame), output, results));
 				frameShowBox->Image = client->ConvertMatToBitmap(output);
@@ -902,6 +947,28 @@ namespace DetectionMonitor {
 					labelWarning->Text = "";//初始化警告框
 					cvReleaseImage(&frameToShow);
 					frameToShow = imageQueue.front();
+					if (isShel == 1 && now_frame_no % 3 == 0)
+					{
+						if (wraningShe == 1)
+						{
+							labelWarning->Text = "警告！！！";
+							beepTimer->Start();
+						}
+						if (dLong > 0)
+						{
+							finshLabel->Text = "正在进行遮挡检测";
+						}
+						Thread ^thread = gcnew Thread(gcnew ThreadStart(this, &MonitorForm::shelFrame));
+						thread->Start();
+					}
+					if (isStudying == 1 && now_frame_no % 3 == 0)
+					{
+						Thread ^thread = gcnew Thread(gcnew ThreadStart(this, &MonitorForm::shelStudyFrame));
+						thread->Start();
+
+					}
+					if (finshNum>0)
+						finshLabel->Text = "学习遮挡进度:" + finshNum + "%";
 					imageQueue.pop();
 					WaitForSingleObject(resultMutex, INFINITE);
 					vector<cv::Point2f> offset(tracker.process(Mat(frameToShow), results));
@@ -951,9 +1018,9 @@ namespace DetectionMonitor {
 							}
 							/*if (i <= offset.size() && result->cls->Equals("person"))
 							{
-								float tempTime = region->timeToAlarm(result, offset[i]);
-								if ((time == 0 && tempTime != 0) || tempTime < time)
-									time = tempTime;
+							float tempTime = region->timeToAlarm(result, offset[i]);
+							if ((time == 0 && tempTime != 0) || tempTime < time)
+							time = tempTime;
 							}*/
 							i++;
 						}
@@ -1020,6 +1087,243 @@ namespace DetectionMonitor {
 		fpsCount++;
 		ReleaseMutex(resultMutex);
 	}
+			//异物遮挡报警
+	private:void shelFrame()
+	{
+		int nHistSize = 256;
+		cvReleaseImage(&oneFrame);//先释放内存，不然随着程序的运行内存会不断增加
+		oneFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		cvCvtColor(frameToShow, oneFrame, CV_BGR2GRAY);
+		float fRange[] = { 0, 255 };  //灰度级的范围    
+		float *pfRanges[] = { fRange };
+		CvHistogram *pcvHistogram = cvCreateHist(1, &nHistSize, CV_HIST_ARRAY, pfRanges);
+		cvCalcHist(&oneFrame, pcvHistogram);
+		float fMaxHistValue = 0;
+		cvGetMinMaxHistValue(pcvHistogram, NULL, &fMaxHistValue, NULL, NULL);
+		//分别将每个直方块的值绘制到图中  
+		float width = oneFrame->width;
+		float count = 0;
+		for (int i = 0; i <256; i++)
+		{
+			float fHistValue = cvQueryHistValue_1D(pcvHistogram, i); //像素为i的直方块大小  	
+																	 //count += Math::Log(fHistValue+1, (i+1)*266);
+																	 //count += fHistValue*(i + 1);
+			count += Math::Log(i + 2, fHistValue + 2);
+		}
+		//strNum += "" + count + "\r\n";
+		//初始化
+		if (shortVector.size() <= LENGTHSHORTQUEUE)
+		{
+			shortVector.push_back(count);
+		}
+		else if (longVector.size() <= LENGTHLONGQUEUE)
+		{
+			longVector.push_back(count);
+
+		}//初始化结束
+		else if (dLong < 0)//第一次计算
+		{
+			float temp[LENGTHLONGQUEUE];
+			for (int i = 0; i < LENGTHLONGQUEUE - 1; i++)
+			{
+				temp[i] = Math::Abs(longVector[i] - longVector[i + 1]);
+			}
+			quickSort(temp, LENGTHLONGQUEUE, (int)LENGTHLONGQUEUE / 2);
+			dLong = temp[(int)LENGTHLONGQUEUE / 2];
+
+		}
+		else if (now_frame_no % 5 == 0)
+		{
+			longVector.erase(longVector.begin());
+			longVector.push_back(count);
+			float temp[LENGTHLONGQUEUE];
+			for (int i = 0; i < LENGTHLONGQUEUE - 1; i++)
+			{
+				temp[i] = Math::Abs(longVector[i] - longVector[i + 1]);
+			}
+			quickSort(temp, LENGTHLONGQUEUE - 1, (int)LENGTHLONGQUEUE / 2);
+			dLong = temp[(int)LENGTHLONGQUEUE / 2];
+		}
+		else
+		{
+			shortVector.erase(shortVector.begin());
+			shortVector.push_back(count);
+			float temp[LENGTHLONGQUEUE];
+			for (int i = 0; i < LENGTHLONGQUEUE; i++)
+			{
+				temp[i] = Math::Abs(shortVector[i] - longVector[i]);
+			}
+			quickSort(temp, LENGTHLONGQUEUE, (int)LENGTHLONGQUEUE / 2);
+			dBetween = temp[(int)LENGTHLONGQUEUE / 2];
+			DateTime dtime = DateTime::Now;
+			wraning = Math::Abs(dBetween - dLong);
+			if (wraning > 6)
+			{
+				wraningShe = 1;
+			}
+		}
+		//	else if
+		//	{
+		//		;
+		//	}
+
+	}
+
+	private:void shelStudyFrame()
+	{
+		int nHistSize = 256;
+		cvReleaseImage(&oneFrame);//先释放内存，不然随着程序的运行内存会不断增加
+		oneFrame = cvCreateImage(cvGetSize(frame), IPL_DEPTH_8U, 1);
+		cvCvtColor(frameToShow, oneFrame, CV_BGR2GRAY);
+		float fRange[] = { 0, 255 };  //灰度级的范围    
+		float *pfRanges[] = { fRange };
+		CvHistogram *pcvHistogram = cvCreateHist(1, &nHistSize, CV_HIST_ARRAY, pfRanges);
+		cvCalcHist(&oneFrame, pcvHistogram);
+		float fMaxHistValue = 0;
+		cvGetMinMaxHistValue(pcvHistogram, NULL, &fMaxHistValue, NULL, NULL);
+		//分别将每个直方块的值绘制到图中  
+		float width = oneFrame->width;
+		float count = 0;
+		for (int i = 0; i < 256; i++)
+		{
+			float fHistValue = cvQueryHistValue_1D(pcvHistogram, i); //像素为i的直方块大小  	
+																	 //count += Math::Log(fHistValue+1, (i+1)*266);
+																	 //count += fHistValue*(i + 1);
+			count += Math::Log(i + 2, fHistValue + 2);
+		}
+		//strNum += "" + count + "\r\n";
+		//初始化
+		if (shortVector.size() <= LENGTHSHORTQUEUE)
+		{
+			shortVector.push_back(count);
+		}
+		else if (longVector.size() <= LENGTHLONGQUEUE)
+		{
+			longVector.push_back(count);
+
+		}//初始化结束
+		else if (dLong < 0)//第一次计算
+		{
+			float temp[LENGTHLONGQUEUE];
+			for (int i = 0; i < LENGTHLONGQUEUE - 1; i++)
+			{
+				temp[i] = Math::Abs(longVector[i] - longVector[i + 1]);
+			}
+			quickSort(temp, LENGTHLONGQUEUE, (int)LENGTHLONGQUEUE / 2);
+			dLong = temp[(int)LENGTHLONGQUEUE / 2];
+
+		}
+		else if (now_frame_no % 5 == 0)
+		{
+			longVector.erase(longVector.begin());
+			longVector.push_back(count);
+			float temp[LENGTHLONGQUEUE];
+			for (int i = 0; i < LENGTHLONGQUEUE - 1; i++)
+			{
+				temp[i] = Math::Abs(longVector[i] - longVector[i + 1]);
+			}
+			quickSort(temp, LENGTHLONGQUEUE - 1, (int)LENGTHLONGQUEUE / 2);
+			dLong = temp[(int)LENGTHLONGQUEUE / 2];
+		}
+		else
+		{
+			shortVector.erase(shortVector.begin());
+			shortVector.push_back(count);
+			float temp[LENGTHLONGQUEUE];
+			for (int i = 0; i < LENGTHLONGQUEUE; i++)
+			{
+				temp[i] = Math::Abs(shortVector[i] - longVector[i]);
+			}
+			quickSort(temp, LENGTHLONGQUEUE, (int)LENGTHLONGQUEUE / 2);
+			dBetween = temp[(int)LENGTHLONGQUEUE / 2];
+			DateTime dtime = DateTime::Now;
+			studyTemp[nowStudyLength] = Math::Abs(dBetween - dLong);
+			nowStudyLength++;
+			finshNum = (int)100 * nowStudyLength / STUDYLENGTH;
+			if (nowStudyLength == STUDYLENGTH)
+			{
+				isStudying = 0;
+				quickSort(studyTemp, STUDYLENGTH - 1, (int)STUDYLENGTH / 2);
+				//File::Create("D:\\TestFilem.txt");
+				File::WriteAllText("thresold.txt", "" + studyTemp[STUDYLENGTH - 1]);
+			}
+		}
+	}
+
+
+
+			void quickSort(float r[], int n, int k) {
+				qsort_improve(r, 0, n, k);//先调用改进算法Qsort使之基本有序  
+
+										  //再用插入排序对基本有序序列排序  
+				for (int i = 1; i <= n; i++) {
+					int tmp = r[i];
+					int j = i - 1;
+					while (tmp < r[j]) {
+						r[j + 1] = r[j]; j = j - 1;
+					}
+					r[j + 1] = tmp;
+				}
+			}
+			void qsort_improve(float r[], int low, int high, int k) {
+				if (high - low > k) { //长度大于k时递归, k为指定的数  
+					int pivot = partition(r, low, high); // 调用的Partition算法保持不变  
+					qsort_improve(r, low, pivot - 1, k);
+					qsort_improve(r, pivot + 1, high, k);
+				}
+			}
+			int partition(float a[], int low, int high)
+			{
+				int privotKey = a[low];                 //基准元素  
+				while (low < high) {                   //从表的两端交替地向中间扫描  
+					while (low < high  && a[high] >= privotKey) --high; //从high 所指位置向前搜索，至多到low+1 位置。将比基准元素小的交换到低端  
+					swap(&a[low], &a[high]);
+					while (low < high  && a[low] <= privotKey) ++low;
+					swap(&a[low], &a[high]);
+				}
+				return low;
+			}
+			void swap(float *a, float *b)
+			{
+				int tmp = *a;
+				*a = *b;
+				*b = tmp;
+			}
+
+			// 创建灰度图像的直方图  
+			CvHistogram* CreateGrayImageHist(IplImage **ppImage)
+			{
+				int nHistSize = 256;
+				float fRange[] = { 0, 255 };  //灰度级的范围    
+				float *pfRanges[] = { fRange };
+				CvHistogram *pcvHistogram = cvCreateHist(1, &nHistSize, CV_HIST_ARRAY, pfRanges);
+				cvCalcHist(ppImage, pcvHistogram);
+				return pcvHistogram;
+			}
+			// 根据直方图创建直方图图像  
+			IplImage* CreateHisogramImage(int nImageWidth, int nScale, int nImageHeight, CvHistogram *pcvHistogram)
+			{
+				IplImage *pHistImage = cvCreateImage(cvSize(nImageWidth * nScale, nImageHeight), IPL_DEPTH_8U, 1);
+
+				//统计直方图中的最大直方块  
+				float fMaxHistValue = 0;
+				cvGetMinMaxHistValue(pcvHistogram, NULL, &fMaxHistValue, NULL, NULL);
+
+				//分别将每个直方块的值绘制到图中  
+				int i;
+				for (i = 0; i < nImageWidth; i++)
+				{
+					float fHistValue = cvQueryHistValue_1D(pcvHistogram, i); //像素为i的直方块大小  
+					int nRealHeight = cvRound((fHistValue / fMaxHistValue) * nImageHeight);  //要绘制的高度  
+					cvRectangle(pHistImage,
+						cvPoint(i * nScale, nImageHeight - 1),
+						cvPoint((i + 1) * nScale - 1, nImageHeight - nRealHeight),
+						cvScalar(i, 0, 0, 0),
+						CV_FILLED
+						);
+				}
+				return pHistImage;
+			}
 
 	private: System::Void calculateTImer_Tick(System::Object^  sender, System::EventArgs^  e) {
 		timeCount++;
@@ -1295,6 +1599,66 @@ namespace DetectionMonitor {
 		button2->Visible = false;
 		button3->Visible = false;
 		region = gcnew UtilSpace::Polygon();
+	}
+	private: System::Void shelterButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		if (isShel == 0)
+		{
+			if (File::Exists("thresold.txt"))
+			{
+				System::String ^num = File::ReadAllText("thresold.txt");
+				wraning = INT16::Parse(num);
+				isShel = 1;
+				dLong = -1;
+				dBetween = -1;
+				finshLabel->Text = "正在准备遮挡检测";
+				finshLabel->Visible = true;
+				while (shortQueue.size() != 0)
+				{
+					shortQueue.pop();
+				}
+				while (longQueue.size() != 0)
+				{
+					longQueue.pop();
+				}
+				while (shortVector.size() != 0)
+				{
+					shortVector.clear();
+				}
+				while (longVector.size() != 0)
+				{
+					longVector.clear();
+				}
+				shortVector.reserve(LENGTHSHORTQUEUE);
+				longVector.reserve(LENGTHLONGQUEUE);
+
+			}
+			else
+			{
+				finshLabel->Text = "请开始遮挡学习";
+				finshLabel->Visible = true;
+			}
+		}
+		else
+		{
+			isShel = 0;
+		}
+	}
+	private: System::Void startStudyButton_Click(System::Object^  sender, System::EventArgs^  e) {
+		if (isStudying == 0)
+		{
+			startStudyButton->Text = "结束学习";
+			shortVector.reserve(LENGTHSHORTQUEUE);
+			longVector.reserve(LENGTHLONGQUEUE);
+			isStudying = 1;
+			nowStudyLength = 0;
+			finshLabel->Visible = true;
+			finshLabel->Text = "正在准备开始学习";
+		}
+		else if (isStudying == 1)
+		{
+			startStudyButton->Text = "开始学习";
+			isStudying = 0;
+		}
 	}
 	};
 }
