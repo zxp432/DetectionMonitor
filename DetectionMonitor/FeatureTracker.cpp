@@ -7,12 +7,6 @@ using namespace cv;
 //帧处理基类  
 class FrameProcessor {
 private://用于打开处理视频  
-		//opencv 视频捕捉对象  
-	VideoCapture capture;
-	//是否调用回调函数的开关  
-	bool callIt;
-	//播放每帧之间的暂停间隔  
-	int delay;
 	//已处理的帧数  
 	long fnumber;
 	//停止在某一帧  
@@ -37,8 +31,6 @@ private://用于打开处理视频
 	vector<string>::const_iterator itImg;
 public:
 	FrameProcessor(void) :
-		callIt(true),
-		delay(0),
 		fnumber(0),
 		stop(false),
 		frameToStop(-1),
@@ -52,84 +44,40 @@ public:
 	{
 	}
 
-	//捕捉设备是否打开  
-	bool isOpened() { return capture.isOpened() || !images.empty(); }
 	//是否停止处理  
 	bool isStopped() { return stop; }
 	//停止处理  
 	void stopIt() { stop = true; }
-	//设置播放延时  
-	void setDelay(int d) { delay = d; }
-	//设置调用回调函数  
-	void callProcess() { callIt = true; }
-	//设置不调用回调函数  
-	void dontCallProcess() { callIt = false; }
 	//设置停留在某帧  
 	void stopAtFrameNo(long frame) { frameToStop = frame; }
-	//返回输入视频的帧频  
-	long  getFrameRate() { return capture.get(CV_CAP_PROP_FPS); }
 
 	//获得图片大小  
-	cv::Size getFrameSize()
+	cv::Size getFrameSize(CvCapture *capture)
 	{
 		cv::Size S;
-		return S = Size((int)capture.get(CV_CAP_PROP_FRAME_WIDTH),    //获取输入尺寸  
-			(int)capture.get(CV_CAP_PROP_FRAME_HEIGHT));
+		return S = Size((int)cvGetCaptureProperty(capture,CV_CAP_PROP_FRAME_WIDTH),    //获取输入尺寸  
+			(int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT));
 	}
 
-	bool setInput(string filename)
-	{
-		fnumber = 0;
-		//万一该VideoCapture对象已经关联了一个资源  
-		capture.release();
-		//images.clear();  
-		//打开视频文件  
-		return capture.open(filename);
 
-	}
-
-	bool readNextFrame(Mat& frame)
-	{
-		if (images.size() == 0)
-			return capture.read(frame);
-		else {
-			if (itImg != images.end())
-			{
-				frame = imread(*itImg);
-				itImg++;
-				return frame.data != 0;
-			}
-			else {
-				return false;
-			}
-		}
-	}
-
-	//获取帧率
-	long getFrameNumber(void)
-	{
-		long fnumber = static_cast<long>(capture.get(CV_CAP_PROP_POS_FRAMES));
-		return fnumber;
-	}
 
 	//设置输出视频文件，默认使用于输入视频相同的参数
-	bool setOutput(const string& filename, int codec = 0, double framerate = 0.0, bool isColor = true)
+	bool setOutput(const string& filename, CvCapture *capture)
 	{
 		outputFile = filename;
 		extension.clear();
-		if (framerate == 0.0)
-			framerate = getFrameRate();
+		double framerate = cvGetCaptureProperty(capture, CV_CAP_PROP_FPS);
+		bool isColor = true;
+		if (framerate == 0)
+			framerate = 30;
 		char c[4];
 		//使用与输出视频相同的编码方式  
-		if (codec == 0)
-		{
-			codec = getCodec(c);
-		}
+		int codec = getCodec(c, capture);
 
 		writer.open(outputFile,
 			codec,
 			framerate,
-			getFrameSize(),
+			getFrameSize(capture),
 			isColor);
 		if (writer.isOpened())
 			return true;
@@ -174,7 +122,7 @@ public:
 	}
 
 
-	int getCodec(char codec[4])
+	int getCodec(char codec[4], CvCapture *capture)
 	{
 		//  
 		if (images.size() != 0)
@@ -184,8 +132,7 @@ public:
 			char code[4];
 		}returned;
 		//获得编码方式  
-		returned.value = static_cast<int>(
-			capture.get(CV_CAP_PROP_FOURCC));
+		returned.value = static_cast<int>(cvGetCaptureProperty(capture, CV_CAP_PROP_FOURCC));
 		//获得四个字符  
 		codec[0] = returned.code[0];
 		codec[1] = returned.code[1];
@@ -196,16 +143,6 @@ public:
 		return returned.value;
 	}
 
-
-	bool setInput(const vector<string>& imgs)
-	{
-		fnumber = 0;
-		capture.release();
-		//将输入图片放入iamges中  
-		images = imgs;
-		itImg = images.begin();
-		return true;
-	}
 
 public:
 	virtual vector<Point2f> process(Mat &input, System::Collections::Generic::List<UtilSpace::Result ^> ^boxes) = 0;
