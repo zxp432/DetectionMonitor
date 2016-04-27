@@ -451,43 +451,34 @@ namespace UtilSpace {
 	{
 		return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
 	}
-	private:int distancePointAndLine(int x, int y, int x1, int y1, int x2, int y2)
+			//点(x,y)到线段(x1,y1)(x2,y2)的距离
+	private: double PointToSegDist(double x, double y, double x1, double y1, double x2, double y2)
 	{
-		int result = abs(((x - x1)*(y2 - y1) - (x2 - x1)*(y - y1))) / sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
-		return result;
-	}
-			//判断矩形监控区域是否与检测结果重合
-	public:bool areTwoAreasOverlapped(Result ^rect) override {
-		//矩形中心坐标
-		float rectx = (rect->x1 + rect->x2) / 2;
-		float recty = (rect->y1 + rect->y2) / 2;
-		//矩形中心与圆型中心距离
-		float disCirRect = distance(this->center->x, this->center->y, rectx, recty);
-		//矩形对角线一半的长度
-		float disRect = distance(rect->x1, rect->y1, rectx, recty);
-		//矩形长
-		float widthX = abs(rect->x2 - rect->x1);
-		float widthY = abs(rect->y2 - rect->y1);
-		float width = widthY;
-		if (widthX >= widthY)
-			width = widthX;
-		//以圆半径加上矩形长的一半做圆，如果矩形中心在园内，矩形与圆形相交；
-		if (width / 2 + this->r > disCirRect)
-			return true;
-		//以圆半径加上矩形对角线一半做圆，如果圆心不在园内，矩形与圆形不相交；
-		if (disRect + this->r < disCirRect)
-			return false;
+		double cross = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1);
+		if (cross <= 0) return sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
 
-		//矩形任意一点在圆内则矩形与圆形相交
-		if (distancePointAndLine(this->center->x, this->center->y, rect->x1, rect->y1, rect->x1, rect->y2) < this->r
-			|| distancePointAndLine(this->center->x, this->center->y, rect->x1, rect->y1, rect->x2, rect->y1) < this->r
-			|| distancePointAndLine(this->center->x, this->center->y, rect->x2, rect->y1, rect->x2, rect->y2) < this->r
-			|| distancePointAndLine(this->center->x, this->center->y, rect->x2, rect->y2, rect->x1, rect->y2) < this->r)
+		double d2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+		if (cross >= d2) return sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
+
+		double r = cross / d2;
+		double px = x1 + (x2 - x1) * r;
+		double py = y1 + (y2 - y1) * r;
+		return sqrt((x - px) * (x - px) + (y - py) * (y - py));
+	}
+
+			 //判断矩形监控区域是否与检测结果重合
+	public:bool areTwoAreasOverlapped(Result ^rect) override {
+		//判断圆心是否在矩形内
+		if (this->center->x >= rect->x1 && this->center->x <= rect->x2 && this->center->y >= rect->y1 && this->center->y <= rect->y2)
+			return true;
+		//判断圆心到每条边的距离
+		if (PointToSegDist(this->center->x, this->center->y, rect->x1, rect->y1, rect->x1, rect->y2) < this->r
+			|| PointToSegDist(this->center->x, this->center->y, rect->x1, rect->y1, rect->x2, rect->y1) < this->r
+			|| PointToSegDist(this->center->x, this->center->y, rect->x2, rect->y1, rect->x2, rect->y2) < this->r
+			|| PointToSegDist(this->center->x, this->center->y, rect->x2, rect->y2, rect->x1, rect->y2) < this->r)
 			return true;
 		return false;
 	}
-	public: float timeToAlarm(Result ^result, cv::Point2f speed) override {
-		return timeToAlarm(result, speed, center->x - this->r, center->y - this->r, center->x + this->r, center->y + this->r);
-	}
+
 	};
 }
